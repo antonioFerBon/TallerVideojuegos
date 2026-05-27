@@ -1,0 +1,218 @@
+<style>
+@keyframes pop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes slidein{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes flsh{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:0.1}}
+@keyframes band-drift{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+@keyframes spot-pulse{0%,100%{transform:scale(1) rotate(-8deg)}50%{transform:scale(1.09) rotate(-8deg)}}
+@keyframes planet-float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-8px)}}
+@keyframes planet-glow{0%,100%{box-shadow:0 0 40px 10px rgba(200,140,80,0.25)}50%{box-shadow:0 0 70px 20px rgba(200,140,80,0.45)}}
+@keyframes reward-in{0%{transform:scale(0.4);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes moon-orbit{from{transform:rotate(0deg) translateX(var(--r)) rotate(0deg)}to{transform:rotate(360deg) translateX(var(--r)) rotate(-360deg)}}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+#outer{position:relative;overflow:hidden;min-height:500px;display:flex;flex-direction:column;align-items:center;font-family:var(--font-sans)}
+#bg{position:absolute;inset:0;background:#03040e;z-index:0}
+.star{position:absolute;border-radius:50%;background:#fff}
+
+#planet-stage{
+  position:relative;
+  z-index:2;
+  margin-top:1.2rem;
+  width:200px;height:200px;
+  flex-shrink:0;
+}
+
+#planet{
+  position:absolute;inset:0;
+  border-radius:50%;
+  overflow:hidden;
+  animation:planet-float 5s ease-in-out infinite, planet-glow 5s ease-in-out infinite;
+}
+
+.band{
+  position:absolute;left:0;right:0;
+  animation:band-drift linear infinite;
+  background-size:200% 100%;
+}
+
+#spot{
+  position:absolute;
+  width:52px;height:34px;
+  border-radius:50%;
+  top:42%;left:34%;
+  animation:spot-pulse 3.5s ease-in-out infinite;
+  background:radial-gradient(ellipse, #b03020 0%, #7a1e10 55%, transparent 80%);
+}
+
+.moon{
+  position:absolute;
+  top:50%;left:50%;
+  border-radius:50%;
+}
+#m1{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;--r:116px;background:#d4b06a;animation:moon-orbit 7s linear infinite;}
+#m2{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;--r:130px;background:#9ab4d4;animation:moon-orbit 11s linear infinite 2s;}
+#m3{width:6px;height:6px;margin:-3px 0 0 -3px;--r:142px;background:#c8c4d0;animation:moon-orbit 16s linear infinite 1s;}
+#m4{width:5px;height:5px;margin:-2.5px 0 0 -2.5px;--r:155px;background:#e0c88a;animation:moon-orbit 5s linear infinite 0.5s;}
+
+#content{position:relative;z-index:10;width:100%;display:flex;flex-direction:column;align-items:center;padding:0.8rem 1rem 1.5rem}
+
+.scr{display:none;width:100%;flex-direction:column;align-items:center}
+.scr.on{display:flex;animation:pop 0.38s ease forwards}
+
+.lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#EF9F27;margin-bottom:0.25rem;font-weight:500}
+h2.tit{font-size:20px;font-weight:500;color:#fff;line-height:1.25;margin:0.15rem 0;text-shadow:0 2px 10px rgba(0,0,0,0.9)}
+
+.bubble{background:rgba(8,10,28,0.85);border:0.5px solid rgba(239,159,39,0.3);border-radius:14px;padding:10px 15px;font-size:13px;color:rgba(255,255,255,0.88);max-width:380px;line-height:1.6;margin:0.45rem 0 0.55rem;animation:slidein 0.4s ease forwards}
+
+.tags{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0.35rem 0}
+.tag{padding:5px 11px;border-radius:99px;font-size:12px;font-weight:500;border:0.5px solid}
+.t-amber{background:rgba(250,199,117,0.14);color:#FAC775;border-color:rgba(250,199,117,0.45)}
+.t-blue{background:rgba(133,183,235,0.14);color:#85B7EB;border-color:rgba(133,183,235,0.45)}
+.t-red{background:rgba(226,75,74,0.14);color:#F09595;border-color:rgba(226,75,74,0.45)}
+.t-purple{background:rgba(175,169,236,0.14);color:#AFA9EC;border-color:rgba(175,169,236,0.45)}
+
+.warn{background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.45);border-radius:12px;padding:9px 14px;font-size:13px;color:#F09595;max-width:370px;line-height:1.5;margin:0.35rem 0;animation:flsh 1.8s ease-in-out infinite}
+
+.reward-box{background:rgba(8,10,28,0.85);border:1px solid rgba(239,159,39,0.55);border-radius:14px;padding:10px 15px;font-size:13px;color:#FAC775;max-width:370px;line-height:1.55;margin:0.35rem 0;animation:reward-in 0.6s ease forwards,pulse 2.5s ease-in-out 0.6s infinite}
+
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:0.7rem}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.18);transition:all 0.3s}
+.dot.on{background:#EF9F27;transform:scale(1.35)}
+.dot.done{background:rgba(239,159,39,0.35)}
+
+.nbtn{margin-top:0.7rem;padding:10px 24px;font-size:14px;font-weight:500;border-radius:99px;border:1.5px solid #EF9F27;background:rgba(239,159,39,0.1);color:#FAC775;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 2s ease-in-out infinite}
+.nbtn:hover{transform:scale(1.06);background:rgba(239,159,39,0.22)}
+.nbtn:active{transform:scale(0.96)}
+
+.sbtn{margin-top:0.7rem;padding:12px 30px;font-size:15px;font-weight:500;border-radius:99px;border:2px solid #EF9F27;background:rgba(239,159,39,0.15);color:#FAC775;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 1.5s ease-in-out infinite}
+.sbtn:hover{transform:scale(1.07);background:rgba(239,159,39,0.3)}
+
+.tbwrap{width:210px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin:0.7rem auto 0;overflow:hidden}
+.tbfill{height:100%;border-radius:2px;background:#EF9F27;width:100%}
+</style>
+
+<div id="outer">
+  <div id="bg"></div>
+
+  <div id="planet-stage">
+    <div id="m4"></div>
+    <div id="m3"></div>
+    <div id="m2"></div>
+    <div id="m1"></div>
+    <div id="planet">
+      <div class="band" style="top:0;height:16%;background:linear-gradient(90deg,#c8955a,#daa870,#b8824a,#c8955a);animation-duration:20s"></div>
+      <div class="band" style="top:15%;height:13%;background:linear-gradient(90deg,#6a3a1a,#8a5a2a,#5a2a0a,#7a4a1a);animation-duration:26s;animation-direction:reverse"></div>
+      <div class="band" style="top:27%;height:15%;background:linear-gradient(90deg,#d4a870,#e8c080,#c09050,#d4a870);animation-duration:17s"></div>
+      <div class="band" style="top:41%;height:17%;background:linear-gradient(90deg,#a06030,#c08040,#883820,#b07030);animation-duration:22s;animation-direction:reverse"></div>
+      <div class="band" style="top:57%;height:13%;background:linear-gradient(90deg,#d8b060,#e8c880,#c8a050,#d8b060);animation-duration:18s"></div>
+      <div class="band" style="top:69%;height:14%;background:linear-gradient(90deg,#7a4820,#9a6030,#6a3818,#8a5028);animation-duration:25s;animation-direction:reverse"></div>
+      <div class="band" style="top:82%;height:18%;background:linear-gradient(90deg,#c89050,#d8a860,#b88040,#c89050);animation-duration:21s"></div>
+      <div id="spot"></div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="dots">
+      <div class="dot on" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+    </div>
+
+    <div class="scr on" id="s0">
+      <div class="lbl">Mitología — El Rey del Olimpo</div>
+      <h2 class="tit">Zeus, Padre de Dioses ⚡</h2>
+      <p style="font-size:11px;color:#EF9F27;margin:0 0 0.45rem;letter-spacing:1px">Gobernante del Cielo y el Trueno</p>
+      <div class="bubble">Hijo del titán Cronos, Zeus gobierna desde el Monte Olimpo portando su temible rayo. Es conocido por sus constantes transformaciones para descender al mundo mortal y ocultar sus secretos bajo densas nubes. <strong style="color:#FAC775">¿Lograrás ver tras su velo?</strong> 💥</div>
+      <button class="nbtn" onclick="goTo(1)">Explorar Planeta ➜</button>
+    </div>
+
+    <div class="scr" id="s1">
+      <div class="lbl">Astronomía — Datos Clave</div>
+      <h2 class="tit">El Gigante Gaseoso 🔭</h2>
+      <div class="tags">
+        <span class="tag t-amber">🪐 143.000 km Diámetro</span>
+        <span class="tag t-blue">🌪️ Rotación: 10 horas</span>
+      </div>
+      <div class="bubble">Júpiter es el planeta más grande del sistema solar. Carece de una superficie sólida bien definida y su atmósfera está compuesta principalmente por estos elementos:</div>
+      <div class="tags">
+        <span class="tag t-amber">🧪 Hidrógeno (89%)</span>
+        <span class="tag t-blue">🧪 Helio (10%)</span>
+        <span class="tag t-red">🧪 Metano y Amoníaco</span>
+      </div>
+      <button class="nbtn" onclick="goTo(2)">Ver la Gran Tormenta ➜</button>
+    </div>
+
+    <div class="scr" id="s2">
+      <div class="lbl">Fenómenos Extremos</div>
+      <h2 class="tit">La Gran Mancha Roja ⚠️</h2>
+      <div class="bubble">Este colosal vórtice anticiclónico es una tormenta activa desde hace siglos, tan grande que <strong style="color:#F09595">podría tragarse a la Tierra entera</strong> en su interior.</div>
+      <div class="warn">⚠️ Sus vientos en la periferia superan los 430 km/h, desafiando la gravedad y la radiación extrema del gigante del Olimpo.</div>
+      <button class="nbtn" onclick="goTo(3)">Finalizar ➜</button>
+    </div>
+
+    <div class="scr" id="s3">
+      <div class="lbl">Fase Final</div>
+      <h2 class="tit">Formulario de Misión 📝</h2>
+      
+      <div class="bubble" id="contenedor-vacio" style="min-height: 80px; width: 100%;">
+        </div>
+
+      <button class="sbtn" id="sbtn" onclick="launchGame()">¡COMENZAR MISION! ⚡</button>
+    </div>
+
+    <div class="tbwrap" id="tw" style="display:none">
+      <div class="tbfill" id="tb"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var cur=0,tid=null,dur=9000;
+var bg=document.getElementById('bg');
+var h='';
+for(var i=0;i<100;i++){
+  var s=Math.random()*2+0.4;
+  var x=Math.random()*100,y=Math.random()*100;
+  var d=Math.random()*5,t=Math.random()*3+1.5;
+  h+='<div class="star" style="width:'+s+'px;height:'+s+'px;left:'+x+'%;top:'+y+'%;opacity:'+(Math.random()*0.6+0.2)+';animation:twinkle '+t+'s ease-in-out '+d+'s infinite"></div>';
+}
+bg.innerHTML=h;
+
+function goTo(n){
+  if(n>=4)return;
+  document.getElementById('s'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.add('done');
+  cur=n;
+  document.getElementById('s'+cur).classList.add('on');
+  document.getElementById('d'+cur).classList.add('on');
+  resetTimer();
+}
+function resetTimer(){
+  if(tid)clearInterval(tid);
+  var bar=document.getElementById('tb'),wrap=document.getElementById('tw');
+  if(cur===3){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  bar.style.transition='none';
+  bar.style.width='100%';
+  bar.style.background='#EF9F27';
+  setTimeout(function(){
+    bar.style.transition='width '+(dur/1000)+'s linear, background 4s';
+    bar.style.width='0%';
+    bar.style.background='#E24B4A';
+  },60);
+  tid=setInterval(function(){goTo(cur+1);},dur);
+}
+function launchGame(){
+  var btn=document.getElementById('sbtn');
+  btn.textContent='¡A por Zeus! ⚡';
+  btn.style.background='rgba(239,159,39,0.35)';
+  btn.style.animation='none';
+  btn.style.transform='scale(1.08)';
+}
+resetTimer();
+</script>

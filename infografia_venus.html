@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>El Crisol de la Belleza Corrosiva - Misión Venus</title>
+<style>
+@keyframes pop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes slidein{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes flsh{0%,100%{opacity:1}50%{opacity:0.25}}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:0.1}}
+@keyframes lava-drift{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+@keyframes planet-float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-6px)}}
+@keyframes atmosphere-glow{0%,100%{box-shadow:0 0 30px 6px rgba(239,159,39,0.25)}50%{box-shadow:0 0 55px 15px rgba(239,159,39,0.5)}}
+
+* {box-sizing:border-box;margin:0;padding:0}
+#outer{position:relative;overflow:hidden;min-height:510px;display:flex;flex-direction:column;align-items:center;font-family:var(--font-sans)}
+#bg{position:absolute;inset:0;background:#0d0502;z-index:0}
+.star{position:absolute;border-radius:50%;background:#ffffff}
+
+#planet-stage{
+  position:relative;z-index:2;
+  margin-top:1rem;
+  width:210px;height:210px;
+  flex-shrink:0;
+}
+
+#planet{
+  position:absolute;
+  width:140px;height:140px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  overflow:hidden;
+  animation:planet-float 4.5s ease-in-out infinite, atmosphere-glow 4.5s ease-in-out infinite;
+}
+
+.lava-band{position:absolute;left:0;right:0;animation:lava-drift linear infinite;background-size:200% 100%}
+
+.acid-cloud{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(212,180,106,0.2);
+  filter:blur(2px);
+}
+
+#content{position:relative;z-index:10;width:100%;display:flex;flex-direction:column;align-items:center;padding:0.7rem 1rem 1.5rem}
+.scr{display:none;width:100%;flex-direction:column;align-items:center}
+.scr.on{display:flex;animation:pop 0.38s ease forwards}
+
+.lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#FAC775;margin-bottom:0.2rem;font-weight:500}
+h2.tit{font-size:20px;font-weight:500;color:#fff;line-height:1.25;margin:0.15rem 0;text-shadow:0 2px 12px rgba(0,0,0,0.9)}
+
+.bubble{background:rgba(18,8,4,0.9);border:0.5px solid rgba(239,159,39,0.35);border-radius:14px;padding:11px 16px;font-size:13px;color:rgba(255,240,230,0.9);max-width:385px;line-height:1.62;margin:0.4rem 0 0.5rem;animation:slidein 0.4s ease forwards}
+.fact{background:rgba(18,8,4,0.75);border-left:2px solid #EF9F27;border-radius:0 10px 10px 0;padding:8px 12px;font-size:12px;color:rgba(250,220,190,0.85);max-width:385px;line-height:1.5;margin:0.2rem 0;animation:slidein 0.5s ease forwards}
+
+.tags{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0.3rem 0}
+.tag{padding:5px 11px;border-radius:99px;font-size:12px;font-weight:500;border:0.5px solid}
+.t-amber{background:rgba(239,159,39,0.15);color:#FAC775;border-color:rgba(239,159,39,0.45)}
+.t-red{background:rgba(226,75,74,0.15);color:#F09595;border-color:rgba(226,75,74,0.45)}
+.t-blue{background:rgba(133,183,235,0.14);color:#85B7EB;border-color:rgba(133,183,235,0.45)}
+.t-teal{background:rgba(93,202,165,0.14);color:#9FE1CB;border-color:rgba(93,202,165,0.45)}
+
+.warn{background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.45);border-radius:12px;padding:9px 14px;font-size:13px;color:#F09595;max-width:370px;line-height:1.5;margin:0.3rem 0;animation:flsh 2s ease-in-out infinite}
+.reward-box{background:rgba(18,8,4,0.9);border:1px solid rgba(239,159,39,0.55);border-radius:14px;padding:11px 16px;font-size:13px;color:#FAC775;max-width:370px;min-height:45px;line-height:1.55;margin:0.35rem 0;animation:pulse 2.5s ease-in-out infinite}
+
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:0.65rem}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all 0.3s}
+.dot.on{background:#EF9F27;transform:scale(1.35)}
+.dot.done{background:rgba(239,159,39,0.35)}
+
+.nbtn{margin-top:0.65rem;padding:10px 24px;font-size:14px;font-weight:500;border-radius:99px;border:1.5px solid #EF9F27;background:rgba(239,159,39,0.1);color:#FAC775;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 2s ease-in-out infinite}
+.nbtn:hover{transform:scale(1.06);background:rgba(239,159,39,0.22)}
+.nbtn:active{transform:scale(0.96)}
+
+.sbtn{margin-top:0.65rem;padding:12px 30px;font-size:15px;font-weight:500;border-radius:99px;border:2px solid #EF9F27;background:rgba(239,159,39,0.15);color:#FAC775;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 1.5s ease-in-out infinite}
+.sbtn:hover{transform:scale(1.07);background:rgba(239,159,39,0.3)}
+
+.tbwrap{width:210px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin:0.65rem auto 0;overflow:hidden}
+.tbfill{height:100%;border-radius:2px;background:#EF9F27;width:100%}
+</style>
+</head>
+<body>
+
+<div id="outer">
+  <div id="bg"></div>
+
+  <div id="planet-stage">
+    <div id="planet">
+      <div class="lava-band" style="top:0;height:25%;background:linear-gradient(90deg,#b56c28,#944a16,#cca05a,#b56c28);animation-duration:16s"></div>
+      <div class="lava-band" style="top:24%;height:20%;background:linear-gradient(90deg,#7a3407,#ad5613,#542100,#7a3407);animation-duration:22s;animation-direction:reverse"></div>
+      <div class="lava-band" style="top:43%;height:22%;background:linear-gradient(90deg,#bd7b33,#d49848,#9c5a1c,#bd7b33);animation-duration:14s"></div>
+      <div class="lava-band" style="top:64%;height:18%;background:linear-gradient(90deg,#873d0c,#b05d1a,#632700,#873d0c);animation-duration:19s;animation-direction:reverse"></div>
+      <div class="lava-band" style="top:81%;height:20%;background:linear-gradient(90deg,#ad6b26,#7d4211,#bd843c,#ad6b26);animation-duration:17s"></div>
+    </div>
+    <div class="acid-cloud" style="width:45px;height:25px;top:15%;left:12%;animation:planet-float 4s ease-in-out infinite"></div>
+    <div class="acid-cloud" style="width:35px;height:20px;top:60%;left:65%;animation:planet-float 5s ease-in-out infinite 1s"></div>
+  </div>
+
+  <div id="content">
+    <div class="dots">
+      <div class="dot on" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+    </div>
+
+    <div class="scr on" id="s0">
+      <div class="lbl">Misión Eonesia — Stellar Mythos</div>
+      <h2 class="tit">El Crisol de la Belleza Corrosiva</h2>
+      <p style="font-size:11px;color:#EF9F27;margin:0 0 0.4rem;letter-spacing:1px">La Forja de los Mundos</p>
+      <div class="bubble">
+        Afrodita, la diosa de la belleza, se oculta en el entorno más hostil del sistema. Está decepcionada porque los seres humanos alteraron el equilibrio de la Tierra. Ella nos advierte que la verdadera armonía requiere una estructura interna resistente.
+      </div>
+      <button class="nbtn" onclick="goTo(1)">Aceptar el desafío</button>
+    </div>
+
+    <div class="scr" id="s1">
+      <div class="lbl">Geología y Estructura</div>
+      <h2 class="tit">El Infierno de Roca</h2>
+      <div class="fact">Venus es un mundo terrestre cubierto por volcanes, llanuras de basalto y ríos de lava ardiente.</div>
+      <div class="fact">Su atmósfera es tan densa y pesada que la presión aplastaría una sonda de exploración al instante.</div>
+      <div class="tags">
+        <span class="tag t-amber">Corteza Rocosa</span>
+        <span class="tag t-red">450 C — Calor Extremo</span>
+        <span class="tag t-amber">Nubes de Ácido</span>
+      </div>
+      <button class="nbtn" onclick="goTo(2)">Verificar Sensores</button>
+    </div>
+
+    <div class="scr" id="s2">
+      <div class="lbl">Simulación de Escaneo</div>
+      <h2 class="tit">Los Escáneres de Núcleo</h2>
+      <div class="bubble">
+        Analiza las Sondas de Datos y sepáralas con precisión científica. Clasifica los mundos rocosos densos y sepáralos de los gigantes gaseosos antes de activar la palanca de presión.
+      </div>
+      <div class="tags">
+        <span class="tag t-amber">Mundos Terrestres</span>
+        <span class="tag t-blue">Gigantes Gaseosos</span>
+        <span class="tag t-teal">Palanca de Presión</span>
+      </div>
+      <div class="warn">
+        Un error de clasificación provocará una descompresión masiva en el laboratorio y el vapor volcánico bloqueará los sistemas.
+      </div>
+      <button class="nbtn" onclick="goTo(3)">Entendido. Proceder.</button>
+    </div>
+
+    <div class="scr" id="s3">
+      <div class="lbl">La Ofrenda Sagrada</div>
+      <h2 class="tit">El Espejo de Azufre</h2>
+      <div class="reward-box">
+        </div>
+      <p style="font-size:11px;color:#EF9F27;margin:0.3rem 0;letter-spacing:0.5px">Sistemas de protección térmica al máximo. Iniciando.</p>
+      <button class="sbtn" id="sbtn" onclick="launchGame()">Iniciar Clasificación</button>
+    </div>
+
+    <div class="tbwrap" id="tw" style="display:none">
+      <div class="tbfill" id="tb"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var cur = 0;
+var tid = null;
+var dur = 12000; // Tiempo configurado a 12 segundos por pantalla
+
+// Generación de fondo estrellado
+var bg = document.getElementById('bg');
+var htmlStars = '';
+for(var i=0; i<70; i++){
+  var size = Math.random()*1.5 + 0.4;
+  var posX = Math.random()*100;
+  var posY = Math.random()*100;
+  var delay = Math.random()*5;
+  var duration = Math.random()*3 + 2;
+  htmlStars += '<div class="star" style="width:'+size+'px;height:'+size+'px;left:'+posX+'%;top:'+posY+'%;opacity:'+(Math.random()*0.5+0.2)+';animation:twinkle '+duration+'s ease-in-out '+delay+'s infinite"></div>';
+}
+bg.innerHTML = htmlStars;
+
+function goTo(n){
+  if(n >= 4) return;
+  document.getElementById('s'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.add('done');
+  cur = n;
+  document.getElementById('s'+cur).classList.add('on');
+  document.getElementById('d'+cur).classList.add('on');
+  resetTimer();
+}
+
+function resetTimer(){
+  if(tid) clearInterval(tid);
+  var bar = document.getElementById('tb');
+  var wrap = document.getElementById('tw');
+  if(cur === 3){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.style.background = '#EF9F27';
+  setTimeout(function(){
+    bar.style.transition = 'width ' + (dur/1000) + 's linear, background 4s';
+    bar.style.width = '0%';
+    bar.style.background = '#E24B4A';
+  }, 60);
+  tid = setInterval(function(){ goTo(cur + 1); }, dur);
+}
+
+function launchGame(){
+  var btn = document.getElementById('sbtn');
+  btn.textContent = 'Analizando Matriz Geológica...';
+  btn.style.background = 'rgba(239,159,39,0.3)';
+  btn.style.animation = 'none';
+  btn.style.transform = 'scale(1.05)';
+}
+
+resetTimer();
+</script>
+</body>
+</html>

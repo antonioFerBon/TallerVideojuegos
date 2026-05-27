@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>El Vórtice de Ares - Misión Mercurio</title>
+<style>
+@keyframes pop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes slidein{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes flsh{0%,100%{opacity:1}50%{opacity:0.25}}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:0.1}}
+@keyframes sun-flare{0%,100%{transform:scale(1);opacity:0.3}50%{transform:scale(1.2);opacity:0.55}}
+@keyframes orbit-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes planet-wobble{0%,100%{transform:translate(-50%,-50%) translateY(0px)}50%{transform:translate(-50%,-50%) translateY(-6px)}}
+
+* {box-sizing:border-box;margin:0;padding:0}
+#outer{position:relative;overflow:hidden;min-height:540px;display:flex;flex-direction:column;align-items:center;font-family:var(--font-sans)}
+#bg{position:absolute;inset:0;background:#05020c;z-index:0}
+.star{position:absolute;border-radius:50%;background:#ffffff}
+
+#space-stage{
+  position:relative;z-index:2;
+  margin-top:1rem;
+  width:260px;height:240px;
+  flex-shrink:0;
+}
+
+#sun-glow{
+  position:absolute;
+  width:200px;height:200px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, rgba(226,75,74,0.45) 0%, rgba(239,159,39,0.12) 60%, transparent 100%);
+  border-radius:50%;
+  animation:sun-flare 4s ease-in-out infinite;
+}
+
+#orbit-line{
+  position:absolute;
+  width:180px;height:180px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border:1.5px dashed rgba(226,75,74,0.45);
+  border-radius:50%;
+  animation:orbit-spin 8s linear infinite;
+}
+
+#planet{
+  position:absolute;
+  top:-18px;left:50%;
+  transform:translateX(-50%);
+  width:36px;height:36px;
+  background:radial-gradient(circle at 30% 30%, #a19f9d 0%, #6e6b69 70%, #3d3b3a 100%);
+  border-radius:50%;
+  box-shadow:inset -4px -4px 8px rgba(0,0,0,0.7), 0 0 12px rgba(226,75,74,0.4);
+}
+
+#mercury-body{
+  position:absolute;
+  width:90px;height:90px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 30% 30%, #8c827b 0%, #544d47 70%, #2e2925 100%);
+  border-radius:50%;
+  box-shadow:inset -8px -8px 16px rgba(0,0,0,0.8);
+  animation:planet-wobble 3.5s ease-in-out infinite;
+}
+
+#content{position:relative;z-index:10;width:100%;display:flex;flex-direction:column;align-items:center;padding:0.7rem 1rem 1.5rem}
+.scr{display:none;width:100%;flex-direction:column;align-items:center}
+.scr.on{display:flex;animation:pop 0.38s ease forwards}
+
+.lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#F09595;margin-bottom:0.2rem;font-weight:500}
+h2.tit{font-size:20px;font-weight:500;color:#fff;line-height:1.25;margin:0.15rem 0;text-shadow:0 2px 12px rgba(0,0,0,0.9)}
+
+.bubble{background:rgba(12,6,14,0.9);border:0.5px solid rgba(226,75,74,0.35);border-radius:14px;padding:11px 16px;font-size:13px;color:rgba(245,230,245,0.9);max-width:385px;line-height:1.62;margin:0.4rem 0 0.5rem;animation:slidein 0.4s ease forwards}
+.fact{background:rgba(12,6,14,0.75);border-left:2px solid #E24B4A;border-radius:0 10px 10px 0;padding:8px 12px;font-size:12px;color:rgba(250,200,200,0.85);max-width:385px;line-height:1.5;margin:0.2rem 0;animation:slidein 0.5s ease forwards}
+
+.tags{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0.3rem 0}
+.tag{padding:5px 11px;border-radius:99px;font-size:12px;font-weight:500;border:0.5px solid}
+.t-red{background:rgba(226,75,74,0.15);color:#F09595;border-color:rgba(226,75,74,0.45)}
+.t-amber{background:rgba(239,159,39,0.15);color:#FAC775;border-color:rgba(239,159,39,0.45)}
+.t-purple{background:rgba(175,169,236,0.15);color:#AFA9EC;border-color:rgba(175,169,236,0.45)}
+.t-teal{background:rgba(93,202,165,0.14);color:#9FE1CB;border-color:rgba(93,202,165,0.45)}
+
+.warn{background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.45);border-radius:12px;padding:9px 14px;font-size:13px;color:#F09595;max-width:370px;line-height:1.5;margin:0.3rem 0;animation:flsh 2s ease-in-out infinite}
+.reward-box{background:rgba(12,6,14,0.9);border:1px solid rgba(226,75,74,0.55);border-radius:14px;padding:11px 16px;font-size:13px;color:#F09595;max-width:370px;min-height:45px;line-height:1.55;margin:0.35rem 0;animation:pulse 2.5s ease-in-out infinite}
+
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:0.65rem}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all 0.3s}
+.dot.on{background:#E24B4A;transform:scale(1.35)}
+.dot.done{background:rgba(226,75,74,0.35)}
+
+.nbtn{margin-top:0.65rem;padding:10px 24px;font-size:14px;font-weight:500;border-radius:99px;border:1.5px solid #E24B4A;background:rgba(226,75,74,0.1);color:#F09595;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 2s ease-in-out infinite}
+.nbtn:hover{transform:scale(1.06);background:rgba(226,75,74,0.22)}
+.nbtn:active{transform:scale(0.96)}
+
+.sbtn{margin-top:0.65rem;padding:12px 30px;font-size:15px;font-weight:500;border-radius:99px;border:2px solid #E24B4A;background:rgba(226,75,74,0.15);color:#F09595;cursor:pointer;transition:transform 0.15s,background 0.15s;animation:pulse 1.5s ease-in-out infinite}
+.sbtn:hover{transform:scale(1.07);background:rgba(226,75,74,0.3)}
+
+.tbwrap{width:210px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin:0.65rem auto 0;overflow:hidden}
+.tbfill{height:100%;border-radius:2px;background:#E24B4A;width:100%}
+</style>
+</head>
+<body>
+
+<div id="outer">
+  <div id="bg"></div>
+
+  <div id="space-stage">
+    <div id="sun-glow"></div>
+    <div id="mercury-body" style="display:none"></div>
+    <div id="orbit-line">
+      <div id="planet"></div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="dots">
+      <div class="dot on" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+    </div>
+
+    <div class="scr on" id="s0">
+      <div class="lbl">Misión Eonesia — Stellar Mythos</div>
+      <h2 class="tit">El Vórtice de Ares</h2>
+      <p style="font-size:11px;color:#E24B4A;margin:0 0 0.4rem;letter-spacing:1px">La Trayectoria Balística de las Órbitas</p>
+      <div class="bubble">
+        Ares, el dios de la estrategia y la fuerza táctica, gobierna desde el planeta más veloz del sistema. Debilitado por el olvido de los mortales, exige que demostremos un entendimiento absoluto de las fuerzas dinámicas para ayudarnos a reparar el Motor del Destino.
+      </div>
+      <button class="nbtn" onclick="goTo(1)">Ingresar al Terminal</button>
+    </div>
+
+    <div class="scr" id="s1">
+      <div class="lbl">Mecánica Celeste</div>
+      <h2 class="tit">El Desafío de la Gravedad</h2>
+      <div class="fact">Mercurio es el planeta más cercano al Sol, lo que le obliga a trasladarse a velocidades extremas para no ser absorbido por su inmensa gravedad.</div>
+      <div class="fact">Experimenta cambios drásticos de temperatura y su órbita es una danza matemática de fuerzas opuestas.</div>
+      <div class="tags">
+        <span class="tag t-red">Gravedad Solar</span>
+        <span class="tag t-amber">Traslación Veloz</span>
+        <span class="tag t-purple">Eje Dinámico</span>
+      </div>
+      <button class="nbtn" onclick="goTo(2)">Calcular Trayectoria</button>
+    </div>
+
+    <div class="scr" id="s2">
+      <div class="lbl">Simulación Balística</div>
+      <h2 class="tit">Los Anclajes Gravitatorios</h2>
+      <div class="bubble">
+        Arrastra los Núcleos de Masa Balística a sus ranuras concéntricas. Equilibra la inercia, calibra el ángulo de traslación con la palanca deslizante y ejecuta la ignición orbital con precisión científica.
+      </div>
+      <div class="tags">
+        <span class="tag t-red">Inercia Exigida</span>
+        <span class="tag t-purple">Ángulo de Giro</span>
+        <span class="tag t-teal">Ignición de Motores</span>
+      </div>
+      <div class="warn">
+        Un desequilibrio entre la masa y la velocidad orbital provocará que la sonda colapse y sea destruida por la atracción del Sol.
+      </div>
+      <button class="nbtn" onclick="goTo(3)">Confirmar Coordenadas</button>
+    </div>
+
+    <div class="scr" id="s3">
+      <div class="lbl">La Ofrenda de Fuerza</div>
+      <h2 class="tit">La Reliquia del Núcleo de Hierro</h2>
+      <div class="reward-box">
+        </div>
+      <p style="font-size:11px;color:#E24B4A;margin:0.3rem 0;letter-spacing:0.5px">Fuerza centrífuga alineada. Impulsores listos.</p>
+      <button class="sbtn" id="sbtn" onclick="launchGame()">Iniciar Órbita Perfecta</button>
+    </div>
+
+    <div class="tbwrap" id="tw" style="display:none">
+      <div class="tbfill" id="tb"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var cur = 0;
+var tid = null;
+var dur = 12000;
+
+// Generación de fondo estrellado táctico
+var bg = document.getElementById('bg');
+var htmlStars = '';
+for(var i=0; i<75; i++){
+  var size = Math.random()*1.4 + 0.4;
+  var posX = Math.random()*100;
+  var posY = Math.random()*100;
+  var delay = Math.random()*5;
+  var duration = Math.random()*3 + 2;
+  htmlStars += '<div class="star" style="width:'+size+'px;height:'+size+'px;left:'+posX+'%;top:'+posY+'%;opacity:'+(Math.random()*0.5+0.2)+';animation:twinkle '+duration+'s ease-in-out '+delay+'s infinite"></div>';
+}
+bg.innerHTML = htmlStars;
+
+function goTo(n){
+  if(n >= 4) return;
+  document.getElementById('s'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.remove('on');
+  document.getElementById('d'+cur).classList.add('done');
+  cur = n;
+  document.getElementById('s'+cur).classList.add('on');
+  document.getElementById('d'+cur).classList.add('on');
+  
+  var orbit = document.getElementById('orbit-line');
+  if(n === 2) {
+    orbit.style.animationDuration = '2s'; 
+  } else if(n === 3) {
+    orbit.style.animationDuration = '5s'; 
+  } else {
+    orbit.style.animationDuration = '8s';
+  }
+  
+  resetTimer();
+}
+
+function resetTimer(){
+  if(tid) clearInterval(tid);
+  var bar = document.getElementById('tb');
+  var wrap = document.getElementById('tw');
+  if(cur === 3){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.style.background = '#E24B4A';
+  setTimeout(function(){
+    bar.style.transition = 'width ' + (dur/1000) + 's linear, background 4s';
+    bar.style.width = '0%';
+    bar.style.background = '#873d0c';
+  }, 60);
+  tid = setInterval(function(){ goTo(cur + 1); }, dur);
+}
+
+function launchGame(){
+  var btn = document.getElementById('sbtn');
+  btn.textContent = 'Calculando Vector de Traslación...';
+  btn.style.background = 'rgba(226,75,74,0.3)';
+  btn.style.animation = 'none';
+  btn.style.transform = 'scale(1.05)';
+}
+
+resetTimer();
+</script>
+</body>
+</html>
