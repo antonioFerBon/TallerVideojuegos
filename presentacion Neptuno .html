@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Abismo de Poseidón — Eonesia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --neptune-blue: #0077B6;
+    --neptune-cyan: #00B4D8;
+    --abyss-deep: #03045E;
+    --abyss-dark: #023E8A;
+    --ice-crystal: #CAF0F8;
+    --methane-glow: #90E0EF;
+    --energy-blue: #00F5D4;
+    --text-main: #F5FBFD;
+    --text-dim: #70A0AF;
+    --border-glow: rgba(0, 180, 216, 0.35);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--abyss-deep);
+    cursor: default;
+  }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 400;
+    position: relative;
+  }
+
+  /* === BACKGROUND LAYERS === */
+
+  .bg-neptune {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 110%, var(--abyss-dark) 0%, #011638 35%, #000814 65%, transparent 90%),
+      radial-gradient(ellipse 90% 50% at 50% 100%, rgba(0,180,216,0.12) 0%, transparent 60%);
+    z-index: 0;
+  }
+
+  .bg-atmo {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,8,20,0.5) 0%, transparent 40%, rgba(3,4,94,0.6) 80%, var(--abyss-deep) 100%);
+    z-index: 1;
+  }
+
+  .bg-terrain {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 45%;
+    z-index: 2;
+    overflow: hidden;
+  }
+
+  .bg-terrain svg {
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  .bg-currents {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 200px,
+        rgba(0,180,216,0.02) 200px, rgba(0,180,216,0.02) 202px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 180px,
+        rgba(0,245,212,0.01) 180px, rgba(0,245,212,0.01) 181px
+      );
+  }
+
+  /* Submarine methane vents */
+  .vent {
+    position: absolute;
+    bottom: 39%;
+    width: 4px;
+    border-radius: 2px;
+    animation: ventpulse 3s ease-in-out infinite;
+    z-index: 4;
+  }
+  .vent:nth-child(1) { left: 15%; height: 50px; background: linear-gradient(to top, rgba(0,245,212,0.4), transparent); animation-delay: 0s; }
+  .vent:nth-child(2) { left: 34%; height: 30px; background: linear-gradient(to top, rgba(144,224,239,0.3), transparent); animation-delay: 1.1s; }
+  .vent:nth-child(3) { left: 68%; height: 65px; background: linear-gradient(to top, rgba(0,180,216,0.5), transparent); animation-delay: 0.5s; }
+  .vent:nth-child(4) { left: 85%; height: 25px; background: linear-gradient(to top, rgba(0,245,212,0.25), transparent); animation-delay: 1.8s; }
+
+  @keyframes ventpulse {
+    0%, 100% { opacity: 0.15; transform: scaleX(1) translateY(4px); filter: blur(1px); }
+    50% { opacity: 0.7; transform: scaleX(2.5) translateY(-6px); filter: blur(2px); }
+  }
+
+  /* === TIMER === */
+
+  .timer-wrap {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    opacity: 0;
+    animation: fadein 0.8s 0.5s forwards;
+  }
+
+  .timer-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .timer-display {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--methane-glow);
+    line-height: 1;
+    transition: color 0.4s;
+    text-shadow: 0 0 20px rgba(144,224,239,0.4);
+  }
+
+  .timer-display.urgent {
+    color: #FF3B3B;
+    text-shadow: 0 0 20px rgba(255,59,59,0.5);
+    animation: urgentpulse 0.5s ease-in-out infinite;
+  }
+
+  @keyframes urgentpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .timer-bar {
+    width: 80px;
+    height: 2px;
+    background: rgba(144,224,239,0.15);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .timer-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--methane-glow);
+    border-radius: 1px;
+    transform-origin: left;
+    transition: background 0.4s;
+  }
+
+  /* === PLANET LABEL === */
+
+  .planet-label {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    z-index: 10;
+    opacity: 0;
+    animation: fadein 0.8s 0.3s forwards;
+  }
+
+  .planet-label-name {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .planet-label-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--text-main);
+    line-height: 1;
+    text-shadow: 0 2px 24px rgba(0,180,216,0.3);
+  }
+
+  .planet-label-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--energy-blue);
+    margin-top: 4px;
+  }
+
+  /* === POSEIDON AVATAR === */
+
+  .poseidon-wrap {
+    position: absolute;
+    bottom: 38%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    opacity: 0;
+    animation: poseidonfadein 1.2s 0.8s cubic-bezier(0.2,0,0.4,1) forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  @keyframes poseidonfadein {
+    from { opacity: 0; transform: translateX(-50%) translateY(25px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .poseidon-glow-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,180,216,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: ringpulse 4s ease-in-out infinite;
+  }
+
+  @keyframes ringpulse {
+    0%, 100% { border-color: rgba(0,180,216,0.15); box-shadow: 0 0 0 0 transparent; }
+    50% { border-color: rgba(0,245,212,0.4); box-shadow: 0 0 35px rgba(0,180,216,0.2); }
+  }
+
+  .poseidon-outer-ring {
+    position: absolute;
+    width: 126px;
+    height: 126px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(144,224,239,0.1);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: outerring 10s linear infinite;
+  }
+
+  @keyframes outerring {
+    from { transform: translate(-50%,-50%) rotate(360deg); }
+    to   { transform: translate(-50%,-50%) rotate(0deg); }
+  }
+
+  .poseidon-outer-ring::after {
+    content: '';
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--energy-blue);
+    border-radius: 50%;
+    top: -3px; left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.8;
+    box-shadow: 0 0 10px var(--energy-blue);
+  }
+
+  .poseidon-figure {
+    width: 80px;
+    height: 80px;
+    position: relative;
+  }
+
+  .poseidon-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 12px rgba(0,180,216,0.4));
+    animation: poseidonflicker 7s ease-in-out infinite;
+  }
+
+  @keyframes poseidonflicker {
+    0%, 84%, 100% { opacity: 1; filter: drop-shadow(0 0 12px rgba(0,180,216,0.4)); transform: scale(1); }
+    86% { opacity: 0.5; filter: drop-shadow(0 0 4px rgba(0,180,216,0.1)); transform: scale(0.98); }
+    88% { opacity: 0.9; }
+    90% { opacity: 0.4; }
+    92% { opacity: 1; transform: scale(1); }
+  }
+
+  .poseidon-abyss-glow {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 58px;
+    height: 12px;
+    background: var(--neptune-cyan);
+    border-radius: 50%;
+    filter: blur(10px);
+    opacity: 0.35;
+    animation: abyssglow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes abyssglow {
+    0%, 100% { opacity: 0.2; width: 46px; }
+    50% { opacity: 0.55; width: 66px; }
+  }
+
+  .poseidon-name {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--neptune-cyan);
+    text-transform: uppercase;
+    margin-top: 14px;
+    opacity: 0.9;
+    text-shadow: 0 0 14px rgba(0,180,216,0.4);
+  }
+
+  .poseidon-status {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--energy-blue);
+    animation: statusdot 1.8s ease-in-out infinite;
+  }
+
+  @keyframes statusdot {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* === DIALOG BOX === */
+
+  .dialog-wrap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 8;
+    padding: 0 24px 28px;
+    opacity: 0;
+    animation: fadein 0.8s 1.4s forwards;
+  }
+
+  .dialog-box {
+    max-width: 860px;
+    margin: 0 auto;
+    background: rgba(3,8,28,0.93);
+    border: 1px solid var(--border-glow);
+    border-radius: 4px;
+    padding: 20px 26px 18px;
+    position: relative;
+    backdrop-filter: blur(8px);
+  }
+
+  .dialog-box::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 40px; right: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,180,216,0.6), transparent);
+  }
+
+  .dialog-box::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 60px; right: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(3,4,94,0.5), transparent);
+  }
+
+  .dialog-corner {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: var(--neptune-cyan);
+    border-style: solid;
+    opacity: 0.5;
+  }
+
+  .dialog-corner.tl { top: -1px; left: -1px; border-width: 1.5px 0 0 1.5px; }
+  .dialog-corner.tr { top: -1px; right: -1px; border-width: 1.5px 1.5px 0 0; }
+  .dialog-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 1.5px 1.5px; }
+  .dialog-corner.br { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+
+  .dialog-speaker {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--neptune-cyan);
+    margin-bottom: 10px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dialog-speaker::before {
+    content: '';
+    display: block;
+    width: 18px; height: 1px;
+    background: var(--neptune-cyan);
+    opacity: 0.6;
+  }
+
+  .dialog-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text-main);
+    letter-spacing: 0.02em;
+    min-height: 56px;
+  }
+
+  .dialog-cursor {
+    display: inline-block;
+    width: 2px; height: 18px;
+    background: var(--energy-blue);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blinkcursor 0.7s step-end infinite;
+  }
+
+  @keyframes blinkcursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .dialog-cursor.hidden { display: none; }
+
+  /* === CTA BUTTON === */
+
+  .cta-wrap {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cta-hint {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .cta-hint.visible { opacity: 1; }
+
+  .cta-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #03045E;
+    background: var(--methane-glow);
+    border: 1px solid var(--neptune-cyan);
+    padding: 11px 28px;
+    border-radius: 2px;
+    cursor: not-allowed;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s, transform 0.5s, background 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .cta-btn.active {
+    cursor: pointer;
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: 0 0 15px rgba(0, 180, 216, 0.25);
+  }
+
+  .cta-btn.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.15s;
+  }
+
+  .cta-btn.active:hover {
+    background: var(--ice-crystal);
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.4);
+  }
+
+  .cta-btn.active:hover::before {
+    background: rgba(255,255,255,0.2);
+  }
+
+  .cta-btn.active:active {
+    background: var(--neptune-cyan);
+    transform: translateY(1px);
+  }
+
+  .cta-btn.urgent-btn {
+    animation: btnurgent 0.4s ease-in-out infinite;
+  }
+
+  @keyframes btnurgent {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,245,212,0.6); }
+    50% { box-shadow: 0 0 0 6px rgba(0,245,212,0); }
+  }
+
+  /* === SCAN LINE === */
+
+  .scanline {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.06) 3px,
+      rgba(0,0,0,0.06) 4px
+    );
+    opacity: 0.3;
+  }
+
+  /* === INTRO OVERLAY === */
+
+  .intro-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: var(--abyss-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    animation: overlayout 0.8s 0.4s cubic-bezier(0.4,0,1,1) forwards;
+  }
+
+  @keyframes overlayout {
+    from { opacity: 1; }
+    to   { opacity: 0; pointer-events: none; }
+  }
+
+  .intro-wordmark {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .intro-title {
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--text-main);
+  }
+
+  /* === END OVERLAY === */
+
+  .end-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    background: rgba(2,8,24,0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: background 1.2s;
+  }
+
+  .end-overlay.active {
+    background: rgba(2,8,24,0.95);
+    pointer-events: all;
+  }
+
+  .end-message {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--text-main);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.8s 0.5s;
+    line-height: 1.8;
+  }
+
+  .end-overlay.active .end-message { opacity: 1; }
+
+  /* === UTILITY === */
+
+  @keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+    animation: bubblefloat linear infinite;
+  }
+
+  @keyframes bubblefloat {
+    from { transform: translateY(0) translateX(0); opacity: 0.5; }
+    to   { transform: translateY(-90px) translateX(var(--dx, 20px)); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="intro-overlay">
+  <p class="intro-wordmark">Eonesia</p>
+  <p class="intro-title">NEPTUNO</p>
+</div>
+
+<div class="bg-neptune"></div>
+<div class="bg-atmo"></div>
+
+<div class="bg-terrain">
+  <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ocean-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#023E8A"/>
+        <stop offset="100%" stop-color="#010B1C"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,140 Q110,90 230,130 T480,110 T720,135 T980,95 T1200,125 L1200,200 L0,200 Z" fill="url(#ocean-grad)"/>
+    <path d="M0,160 Q140,120 290,150 T610,130 T920,155 T1200,140 L1200,200 L0,200 Z" fill="#03045E" opacity="0.7"/>
+    <path d="M90,95 L110,130" stroke="#00B4D8" stroke-width="0.5" opacity="0.3"/>
+    <path d="M720,135 L710,175" stroke="#00F5D4" stroke-width="0.5" opacity="0.25"/>
+    <path d="M980,95 L960,140" stroke="#00B4D8" stroke-width="0.6" opacity="0.3"/>
+  </svg>
+</div>
+
+<div class="bg-currents"></div>
+
+<div class="vent"></div>
+<div class="vent"></div>
+<div class="vent"></div>
+<div class="vent"></div>
+
+<div class="planet-label">
+  <p class="planet-label-name">Última frontera</p>
+  <p class="planet-label-title">NEPTUNO</p>
+  <p class="planet-label-sub">El Abismo Terrenal</p>
+</div>
+
+<div class="timer-wrap">
+  <p class="timer-label">Tiempo de respuesta</p>
+  <p class="timer-display" id="timerDisplay">40</p>
+  <div class="timer-bar"><div class="timer-bar-fill" id="timerFill"></div></div>
+</div>
+
+<div class="poseidon-wrap" id="poseidonWrap">
+  <div class="poseidon-glow-ring">
+    <div class="poseidon-outer-ring"></div>
+    <div class="poseidon-figure">
+      <svg class="poseidon-svg" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="36" cy="36" r="26" stroke="#00B4D8" stroke-width="1.5" opacity="0.8"/>
+        <path d="M36,16 L36,54" stroke="#00B4D8" stroke-width="1.8" stroke-linecap="round" opacity="0.9"/>
+        <path d="M24,22 L24,32 Q24,40 36,40 Q48,40 48,32 L48,22" stroke="#00B4D8" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+        <path d="M20,20 L24,22 L28,20" stroke="#00B4D8" stroke-width="1" opacity="0.7"/>
+        <path d="M44,20 L48,22 L52,20" stroke="#00B4D8" stroke-width="1" opacity="0.7"/>
+        <path d="M32,14 L36,16 L40,14" stroke="#00F5D4" stroke-width="1.2" opacity="0.9"/>
+        <line x1="20" y1="48" x2="52" y2="48" stroke="#00F5D4" stroke-width="0.8" opacity="0.4"/>
+      </svg>
+      <div class="poseidon-abyss-glow"></div>
+    </div>
+  </div>
+  <p class="poseidon-name">Poseidón</p>
+  <p class="poseidon-status"><span class="status-dot"></span>Foso Abisal Estabilizado</p>
+</div>
+
+<div id="bubbles-host" style="position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden;"></div>
+
+<div class="dialog-wrap" id="dialogWrap">
+  <div class="dialog-box">
+    <div class="dialog-corner tl"></div>
+    <div class="dialog-corner tr"></div>
+    <div class="dialog-corner bl"></div>
+    <div class="dialog-corner br"></div>
+    <p class="dialog-speaker">Poseidón — Rey de los Océanos</p>
+    <p class="dialog-text" id="dialogText"><span class="dialog-cursor" id="dialogCursor"></span></p>
+    <div class="cta-wrap">
+      <p class="cta-hint" id="ctaHint">Sistemas hidrodinámicos acoplados al sonar</p>
+      <button class="cta-btn" id="ctaBtn" disabled>Iniciar inmersión subacuática</button>
+    </div>
+  </div>
+</div>
+
+<div class="scanline"></div>
+
+<div class="end-overlay" id="endOverlay">
+  <p class="end-message" id="endMessage"></p>
+</div>
+
+<script {box-sizing: border-box;}>
+const SPEECH_DISPLAY = "Os habéis atrevido a descender hasta el confinamiento más helado del cosmos. Buscáis mi Esencia de Metano Azul para calmar los mares hirvientes de la Tierra, pero mis dominios no responden a los mandatos humanos. Aquí, las corrientes supersónicas destrozarán vuestro casco y las criaturas de hielo acechan en la oscuridad cero. Si pretendéis reclamar el fluido vital, vuestra tripulación debe dominar la navegación inercial y aprender a escuchar el sonar antes de que la presión os aplaste. ¡Sumergíos en mi abismo!";
+
+const TOTAL_TIME = 40;
+const TYPE_DURATION_MS = 22000;
+const charDelay = TYPE_DURATION_MS / SPEECH_DISPLAY.length;
+
+let timerInterval = null;
+let typeInterval = null;
+let charIndex = 0;
+let timeLeft = TOTAL_TIME;
+let ctaActive = false;
+let ended = false;
+
+const timerDisplay = document.getElementById('timerDisplay');
+const timerFill = document.getElementById('timerFill');
+const dialogText = document.getElementById('dialogText');
+const dialogCursor = document.getElementById('dialogCursor');
+const ctaBtn = document.getElementById('ctaBtn');
+const ctaHint = document.getElementById('ctaHint');
+const endOverlay = document.getElementById('endOverlay');
+const endMessage = document.getElementById('endMessage');
+
+function activateCTA() {
+  if (ctaActive) return;
+  ctaActive = true;
+  dialogCursor.classList.add('hidden');
+  ctaBtn.classList.add('active');
+  ctaBtn.disabled = false;
+  ctaHint.classList.add('visible');
+  if (timeLeft <= 10) ctaBtn.classList.add('urgent-btn');
+}
+
+function triggerEnd(won) {
+  if (ended) return;
+  ended = true;
+  clearInterval(timerInterval);
+  clearInterval(typeInterval);
+  endOverlay.classList.add('active');
+  if (won) {
+    endMessage.innerHTML = 'Maniobra de descenso autorizada.<br><span style="font-size:13px;letter-spacing:.3em;color:#00B4D8;font-family:Rajdhani,sans-serif;font-weight:500">Cargando interfaz de simulación submarina...</span>';
+  } else {
+    endMessage.innerHTML = 'Fallo en el casco por sobrepresión.<br><span style="font-size:13px;letter-spacing:.3em;color:#70A0AF;font-family:Rajdhani,sans-serif;font-weight:500">La ventana de acoplamiento ha expirado</span>';
+  }
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+    timerFill.style.transform = 'scaleX(' + (timeLeft / TOTAL_TIME) + ')';
+
+    if (timeLeft <= 10) {
+      timerDisplay.classList.add('urgent');
+      timerFill.style.background = '#FF3B3B';
+      if (ctaActive) ctaBtn.classList.add('urgent-btn');
+    }
+
+    if (timeLeft <= 0) {
+      triggerEnd(false);
+    }
+  }, 1000);
+}
+
+function typeNextChar() {
+  if (charIndex >= SPEECH_DISPLAY.length) {
+    clearInterval(typeInterval);
+    activateCTA();
+    return;
+  }
+  const current = SPEECH_DISPLAY.slice(0, charIndex + 1);
+  dialogText.textContent = current;
+  dialogText.appendChild(dialogCursor);
+  charIndex++;
+}
+
+ctaBtn.addEventListener('click', () => {
+  if (ctaActive && !ended) triggerEnd(true);
+});
+
+function spawnBubble() {
+  const host = document.getElementById('bubbles-host');
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  const size = 1.5 + Math.random() * 3;
+  const left = 8 + Math.random() * 84;
+  const bottom = 34 + Math.random() * 12;
+  const duration = 3.0 + Math.random() * 4.0;
+  const dx = (Math.random() - 0.5) * 50;
+  b.style.cssText = `width:${size}px;height:${size}px;background:rgba(144,224,239,${0.2+Math.random()*0.4});border:0.5px solid rgba(255,255,255,0.2);left:${left}%;bottom:${bottom}%;animation-duration:${duration}s;animation-delay:${Math.random()*1.5}s;--dx:${dx}px;`;
+  host.appendChild(p=b);
+  setTimeout(() => b.remove(), (duration + 2) * 1000);
+}
+
+setTimeout(() => {
+  startTimer();
+  typeInterval = setInterval(typeNextChar, charDelay);
+  setInterval(spawnBubble, 450);
+}, 1200);
+</script>
+</body>
+</html>

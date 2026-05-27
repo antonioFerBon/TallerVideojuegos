@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Forja de Ares — Eonesia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ares-red: #E63946;
+    --ares-crimson: #9B111E;
+    --iron-dark: #1A0F0F;
+    --iron-mid: #2C1A1A;
+    --iron-surface: #3D2525;
+    --dust-gold: #D4A373;
+    --dust-dim: #7A5C3E;
+    --energy-orange: #F4A261;
+    --text-main: #F5EBE6;
+    --text-dim: #A68A8A;
+    --border-glow: rgba(230, 57, 70, 0.35);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--iron-dark);
+    cursor: default;
+  }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 400;
+    position: relative;
+  }
+
+  /* === BACKGROUND LAYERS === */
+
+  .bg-mars {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 110%, var(--ares-crimson) 0%, #4A0E17 25%, #23070B 55%, transparent 80%),
+      radial-gradient(ellipse 80% 40% at 50% 100%, rgba(230,57,70,0.1) 0%, transparent 60%);
+    z-index: 0;
+  }
+
+  .bg-atmo {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(13,10,7,0.4) 0%, transparent 40%, rgba(44,26,26,0.6) 80%, var(--iron-dark) 100%);
+    z-index: 1;
+  }
+
+  .bg-terrain {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 42%;
+    z-index: 2;
+    overflow: hidden;
+  }
+
+  .bg-terrain svg {
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  .bg-cracks {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        transparent 0px, transparent 150px,
+        rgba(230,57,70,0.03) 150px, rgba(230,57,70,0.03) 151px
+      ),
+      repeating-linear-gradient(
+        135deg,
+        transparent 0px, transparent 110px,
+        rgba(230,57,70,0.02) 110px, rgba(230,57,70,0.02) 111px
+      );
+  }
+
+  /* iron vents / dust storms */
+  .vent {
+    position: absolute;
+    bottom: 36%;
+    width: 3px;
+    border-radius: 1.5px;
+    animation: ventpulse 2.5s ease-in-out infinite;
+    z-index: 4;
+  }
+  .vent:nth-child(1) { left: 12%; height: 35px; background: linear-gradient(to top, rgba(230,57,70,0.6), transparent); animation-delay: 0s; }
+  .vent:nth-child(2) { left: 28%; height: 22px; background: linear-gradient(to top, rgba(244,162,97,0.4), transparent); animation-delay: 0.7s; }
+  .vent:nth-child(3) { left: 73%; height: 40px; background: linear-gradient(to top, rgba(230,57,70,0.5), transparent); animation-delay: 0.3s; }
+  .vent:nth-child(4) { left: 89%; height: 18px; background: linear-gradient(to top, rgba(244,162,97,0.3), transparent); animation-delay: 1.2s; }
+
+  @keyframes ventpulse {
+    0%, 100% { opacity: 0.2; transform: scaleX(1) translateY(2px); }
+    50% { opacity: 0.8; transform: scaleX(2.2) translateY(-2px); }
+  }
+
+  /* === TIMER === */
+
+  .timer-wrap {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    opacity: 0;
+    animation: fadein 0.8s 0.5s forwards;
+  }
+
+  .timer-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .timer-display {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--energy-orange);
+    line-height: 1;
+    transition: color 0.4s;
+    text-shadow: 0 0 20px rgba(244,162,97,0.4);
+  }
+
+  .timer-display.urgent {
+    color: #FF3B3B;
+    text-shadow: 0 0 20px rgba(255,59,59,0.5);
+    animation: urgentpulse 0.5s ease-in-out infinite;
+  }
+
+  @keyframes urgentpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .timer-bar {
+    width: 80px;
+    height: 2px;
+    background: rgba(244,162,97,0.15);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .timer-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--energy-orange);
+    border-radius: 1px;
+    transform-origin: left;
+    transition: background 0.4s;
+  }
+
+  /* === PLANET LABEL === */
+
+  .planet-label {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    z-index: 10;
+    opacity: 0;
+    animation: fadein 0.8s 0.3s forwards;
+  }
+
+  .planet-label-name {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .planet-label-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--text-main);
+    line-height: 1;
+    text-shadow: 0 2px 24px rgba(230,57,70,0.3);
+  }
+
+  .planet-label-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--energy-orange);
+    margin-top: 4px;
+  }
+
+  /* === ARES AVATAR === */
+
+  .ares-wrap {
+    position: absolute;
+    bottom: 36%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    opacity: 0;
+    animation: aresfadein 1.2s 0.8s cubic-bezier(0.2,0,0.4,1) forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  @keyframes aresfadein {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .ares-glow-ring {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(230,57,70,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: ringpulse 3.5s ease-in-out infinite;
+  }
+
+  @keyframes ringpulse {
+    0%, 100% { border-color: rgba(230,57,70,0.15); box-shadow: 0 0 0 0 transparent; }
+    50% { border-color: rgba(230,57,70,0.45); box-shadow: 0 0 30px rgba(230,57,70,0.15); }
+  }
+
+  .ares-outer-ring {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(244,162,97,0.1);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: outerring 8s linear infinite;
+  }
+
+  @keyframes outerring {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(360deg); }
+  }
+
+  .ares-outer-ring::after {
+    content: '';
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--ares-red);
+    border-radius: 50%;
+    top: -3px; left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.8;
+    box-shadow: 0 0 10px var(--ares-red);
+  }
+
+  .ares-figure {
+    width: 76px;
+    height: 76px;
+    position: relative;
+  }
+
+  .ares-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 10px rgba(230,57,70,0.35));
+    animation: aresflicker 6s ease-in-out infinite;
+  }
+
+  @keyframes aresflicker {
+    0%, 78%, 100% { opacity: 1; filter: drop-shadow(0 0 10px rgba(230,57,70,0.35)); }
+    80% { opacity: 0.6; filter: drop-shadow(0 0 3px rgba(230,57,70,0.1)); }
+    82% { opacity: 0.95; }
+    84% { opacity: 0.5; }
+    86% { opacity: 1; }
+  }
+
+  .ares-iron-glow {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 54px;
+    height: 10px;
+    background: var(--ares-red);
+    border-radius: 50%;
+    filter: blur(8px);
+    opacity: 0.4;
+    animation: ironglow 2s ease-in-out infinite;
+  }
+
+  @keyframes ironglow {
+    0%, 100% { opacity: 0.25; width: 44px; }
+    50% { opacity: 0.6; width: 62px; }
+  }
+
+  .ares-name {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--ares-red);
+    text-transform: uppercase;
+    margin-top: 12px;
+    opacity: 0.9;
+    text-shadow: 0 0 14px rgba(230,57,70,0.4);
+  }
+
+  .ares-status {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ares-red);
+    animation: statusdot 1.5s ease-in-out infinite;
+  }
+
+  @keyframes statusdot {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* === DIALOG BOX === */
+
+  .dialog-wrap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 8;
+    padding: 0 24px 28px;
+    opacity: 0;
+    animation: fadein 0.8s 1.4s forwards;
+  }
+
+  .dialog-box {
+    max-width: 860px;
+    margin: 0 auto;
+    background: rgba(20,12,12,0.92);
+    border: 1px solid var(--border-glow);
+    border-radius: 4px;
+    padding: 20px 26px 18px;
+    position: relative;
+    backdrop-filter: blur(8px);
+  }
+
+  .dialog-box::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 40px; right: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(230,57,70,0.6), transparent);
+  }
+
+  .dialog-box::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 60px; right: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(155,17,30,0.4), transparent);
+  }
+
+  .dialog-corner {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: var(--ares-red);
+    border-style: solid;
+    opacity: 0.5;
+  }
+
+  .dialog-corner.tl { top: -1px; left: -1px; border-width: 1.5px 0 0 1.5px; }
+  .dialog-corner.tr { top: -1px; right: -1px; border-width: 1.5px 1.5px 0 0; }
+  .dialog-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 1.5px 1.5px; }
+  .dialog-corner.br { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+
+  .dialog-speaker {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ares-red);
+    margin-bottom: 10px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dialog-speaker::before {
+    content: '';
+    display: block;
+    width: 18px; height: 1px;
+    background: var(--ares-red);
+    opacity: 0.6;
+  }
+
+  .dialog-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text-main);
+    letter-spacing: 0.02em;
+    min-height: 56px;
+  }
+
+  .dialog-cursor {
+    display: inline-block;
+    width: 2px; height: 18px;
+    background: var(--energy-orange);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blinkcursor 0.7s step-end infinite;
+  }
+
+  @keyframes blinkcursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .dialog-cursor.hidden { display: none; }
+
+  /* === CTA BUTTON === */
+
+  .cta-wrap {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cta-hint {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .cta-hint.visible { opacity: 1; }
+
+  .cta-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: white;
+    background: var(--ares-crimson);
+    border: 1px solid var(--ares-red);
+    padding: 11px 28px;
+    border-radius: 2px;
+    cursor: not-allowed;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s, transform 0.5s, background 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .cta-btn.active {
+    cursor: pointer;
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.2);
+  }
+
+  .cta-btn.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.15s;
+  }
+
+  .cta-btn.active:hover {
+    background: var(--ares-red);
+    box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+  }
+
+  .cta-btn.active:hover::before {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .cta-btn.active:active {
+    background: #6B0B13;
+    transform: translateY(1px);
+  }
+
+  .cta-btn.urgent-btn {
+    animation: btnurgent 0.4s ease-in-out infinite;
+  }
+
+  @keyframes btnurgent {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(230,57,70,0); }
+  }
+
+  /* === SCAN LINE === */
+
+  .scanline {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.05) 3px,
+      rgba(0,0,0,0.05) 4px
+    );
+    opacity: 0.35;
+  }
+
+  /* === INTRO OVERLAY === */
+
+  .intro-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: var(--iron-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    animation: overlayout 0.8s 0.4s cubic-bezier(0.4,0,1,1) forwards;
+  }
+
+  @keyframes overlayout {
+    from { opacity: 1; }
+    to   { opacity: 0; pointer-events: none; }
+  }
+
+  .intro-wordmark {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .intro-title {
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--text-main);
+  }
+
+  /* === END OVERLAY === */
+
+  .end-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    background: rgba(20,12,12,0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: background 1.2s;
+  }
+
+  .end-overlay.active {
+    background: rgba(20,12,12,0.94);
+    pointer-events: all;
+  }
+
+  .end-message {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--text-main);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.8s 0.5s;
+    line-height: 1.8;
+  }
+
+  .end-overlay.active .end-message { opacity: 1; }
+
+  /* === UTILITY === */
+
+  @keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+    animation: particlefloat linear infinite;
+  }
+
+  @keyframes particlefloat {
+    from { transform: translateY(0) translateX(0); opacity: 0.6; }
+    to   { transform: translateY(-70px) translateX(var(--dx, 15px)); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="intro-overlay">
+  <p class="intro-wordmark">Eonesia</p>
+  <p class="intro-title">MARTE</p>
+</div>
+
+<div class="bg-mars"></div>
+<div class="bg-atmo"></div>
+
+<div class="bg-terrain">
+  <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#241414"/>
+        <stop offset="100%" stop-color="#120A0A"/>
+      </linearGradient>
+    </defs>
+    <polygon points="0,200 0,130 90,95 160,115 220,70 310,120 380,60 460,110 520,50 590,95 660,40 730,105 810,65 890,115 950,55 1030,100 1100,45 1160,85 1200,35 1200,200" fill="url(#tg)"/>
+    <polygon points="0,200 0,150 70,135 140,140 200,120 270,130 350,110 420,125 490,105 560,115 630,95 710,110 780,100 850,105 920,90 990,100 1060,85 1140,95 1200,75 1200,200" fill="#1A0F0F" opacity="0.75"/>
+    <line x1="380" y1="60" x2="380" y2="110" stroke="#E63946" stroke-width="0.7" opacity="0.4"/>
+    <line x1="660" y1="40" x2="680" y2="90" stroke="#E63946" stroke-width="0.7" opacity="0.35"/>
+    <line x1="520" y1="50" x2="500" y2="100" stroke="#F4A261" stroke-width="0.5" opacity="0.3"/>
+    <line x1="950" y1="55" x2="930" y2="95" stroke="#E63946" stroke-width="0.6" opacity="0.3"/>
+  </svg>
+</div>
+
+<div class="bg-cracks"></div>
+
+<div class="vent"></div>
+<div class="vent"></div>
+<div class="vent"></div>
+<div class="vent"></div>
+
+<div class="planet-label">
+  <p class="planet-label-name">Tercer planeta</p>
+  <p class="planet-label-title">MARTE</p>
+  <p class="planet-label-sub">La Forja de Ares</p>
+</div>
+
+<div class="timer-wrap">
+  <p class="timer-label">Tiempo de respuesta</p>
+  <p class="timer-display" id="timerDisplay">40</p>
+  <div class="timer-bar"><div class="timer-bar-fill" id="timerFill"></div></div>
+</div>
+
+<div class="ares-wrap" id="aresWrap">
+  <div class="ares-glow-ring">
+    <div class="ares-outer-ring"></div>
+    <div class="ares-figure">
+      <svg class="ares-svg" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="36,12 56,26 56,50 36,64 16,50 16,26" fill="none" stroke="#E63946" stroke-width="1.5" opacity="0.9"/>
+        <polygon points="36,18 50,28 50,48 36,58 22,48 22,28" fill="#E63946" opacity="0.25"/>
+        <line x1="36" y1="12" x2="36" y2="64" stroke="#E63946" stroke-width="1.2" opacity="0.8"/>
+        <line x1="12" y1="60" x2="60" y2="12" stroke="#F4A261" stroke-width="1" opacity="0.6"/>
+        <line x1="60" y1="60" x2="12" y2="12" stroke="#F4A261" stroke-width="1" opacity="0.6"/>
+        <polygon points="36,30 42,36 36,42 30,36" fill="#E63946" opacity="0.8"/>
+      </svg>
+      <div class="ares-iron-glow"></div>
+    </div>
+  </div>
+  <p class="ares-name">Ares</p>
+  <p class="ares-status"><span class="status-dot"></span>Frente de Batalla Activo</p>
+</div>
+
+<div id="particles-host" style="position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden;"></div>
+
+<div class="dialog-wrap" id="dialogWrap">
+  <div class="dialog-box">
+    <div class="dialog-corner tl"></div>
+    <div class="dialog-corner tr"></div>
+    <div class="dialog-corner bl"></div>
+    <div class="dialog-corner br"></div>
+    <p class="dialog-speaker">Ares — Dios de la Guerra</p>
+    <p class="dialog-text" id="dialogText"><span class="dialog-cursor" id="dialogCursor"></span></p>
+    <div class="cta-wrap">
+      <p class="cta-hint" id="ctaHint">Tu estrategia militar está siendo evaluada</p>
+      <button class="cta-btn" id="ctaBtn" disabled>Iniciar defensa táctica</button>
+    </div>
+  </div>
+</div>
+
+<div class="scanline"></div>
+
+<div class="end-overlay" id="endOverlay">
+  <p class="end-message" id="endMessage"></p>
+</div>
+
+<script>
+const SPEECH_DISPLAY = "Mortales... pisáis las arenas rojas de mi dominio. Buscáis mi Ofrenda, el Hierro de Sangre, para reconstruir vuestro mundo roto. Pero en la frontera de Marte no hay lugar para los débiles. Mis propios hijos, Fobos y Deimos, lideran las hordas del Terror y la Fobia que asedian mis fortalezas metálicas. Si queréis el mineral, debéis demostrar que vuestra mente posee la fuerza de un escudo y la astucia de una lanza. ¡Desplegad vuestras defensas o sed devorados por el desierto!";
+
+const TOTAL_TIME = 40;
+const TYPE_DURATION_MS = 22000;
+const charDelay = TYPE_DURATION_MS / SPEECH_DISPLAY.length;
+
+let timerInterval = null;
+let typeInterval = null;
+let charIndex = 0;
+let timeLeft = TOTAL_TIME;
+let ctaActive = false;
+let ended = false;
+
+const timerDisplay = document.getElementById('timerDisplay');
+const timerFill = document.getElementById('timerFill');
+const dialogText = document.getElementById('dialogText');
+const dialogCursor = document.getElementById('dialogCursor');
+const ctaBtn = document.getElementById('ctaBtn');
+const ctaHint = document.getElementById('ctaHint');
+const endOverlay = document.getElementById('endOverlay');
+const endMessage = document.getElementById('endMessage');
+
+function activateCTA() {
+  if (ctaActive) return;
+  ctaActive = true;
+  dialogCursor.classList.add('hidden');
+  ctaBtn.classList.add('active');
+  ctaBtn.disabled = false;
+  ctaHint.classList.add('visible');
+  if (timeLeft <= 10) ctaBtn.classList.add('urgent-btn');
+}
+
+function triggerEnd(won) {
+  if (ended) return;
+  ended = true;
+  clearInterval(timerInterval);
+  clearInterval(typeInterval);
+  endOverlay.classList.add('active');
+  if (won) {
+    endMessage.innerHTML = 'Estrategia aceptada.<br><span style="font-size:13px;letter-spacing:.3em;color:#E63946;font-family:Rajdhani,sans-serif;font-weight:500">Cargando el mapa de defensa (Tower Defense)...</span>';
+  } else {
+    endMessage.innerHTML = 'Las defensas han caído ante el Terror.<br><span style="font-size:13px;letter-spacing:.3em;color:#A68A8A;font-family:Rajdhani,sans-serif;font-weight:500">El tiempo estratégico ha expirado</span>';
+  }
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+    timerFill.style.transform = 'scaleX(' + (timeLeft / TOTAL_TIME) + ')';
+
+    if (timeLeft <= 10) {
+      timerDisplay.classList.add('urgent');
+      timerFill.style.background = '#FF3B3B';
+      if (ctaActive) ctaBtn.classList.add('urgent-btn');
+    }
+
+    if (timeLeft <= 0) {
+      triggerEnd(false);
+    }
+  }, 1000);
+}
+
+function typeNextChar() {
+  if (charIndex >= SPEECH_DISPLAY.length) {
+    clearInterval(typeInterval);
+    activateCTA();
+    return;
+  }
+  const current = SPEECH_DISPLAY.slice(0, charIndex + 1);
+  dialogText.textContent = current;
+  dialogText.appendChild(dialogCursor);
+  charIndex++;
+}
+
+ctaBtn.addEventListener('click', () => {
+  if (ctaActive && !ended) triggerEnd(true);
+});
+
+function spawnParticle() {
+  const host = document.getElementById('particles-host');
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = 1.2 + Math.random() * 2.5;
+  const left = 5 + Math.random() * 90;
+  const bottom = 32 + Math.random() * 15;
+  const duration = 2.5 + Math.random() * 3.5;
+  const dx = (Math.random() - 0.5) * 40;
+  p.style.cssText = `width:${size}px;height:${size}px;background:rgba(230,57,70,${0.25+Math.random()*0.35});left:${left}%;bottom:${bottom}%;animation-duration:${duration}s;animation-delay:${Math.random()*2}s;--dx:${dx}px;`;
+  host.appendChild(p);
+  setTimeout(() => p.remove(), (duration + 2) * 1000);
+}
+
+setTimeout(() => {
+  startTimer();
+  typeInterval = setInterval(typeNextChar, charDelay);
+  setInterval(spawnParticle, 500);
+}, 1200);
+</script>
+</body>
+</html>
