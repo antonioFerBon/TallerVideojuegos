@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <title>Los Ojos de Zeus: Operación JUNO 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            jupiter: {
+              cream: '#F4EAD4',
+              tan: '#D4A373',
+              orange: '#E76F51',
+              red: '#9B2226',
+              dark: '#2F1116',
+              gold: '#FFD700',
+              electric: '#00F0FF',
+              plasma: '#A020F0'
+            }
+          },
+          animation: {
+            'pulse-fast': 'pulse 0.6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @keyframes storm-spin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.05); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .jupiter-storm {
+      animation: storm-spin 25s infinite linear;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #FFD700;
+      cursor: pointer;
+      box-shadow: 0 0 10px #FFD700;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #FFD700;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px #FFD700;
+    }
+  </style>
+</head>
+<body class="h-full text-slate-100 overflow-hidden select-none">
+  <div id="root" class="h-full"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const Icons = {
+      Zap: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+      Radio: () => <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>,
+      Eye: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
+      Flame: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>,
+      Waves: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M2 6c.6 0 1.2-.2 1.6-.6L6.2 3c.8-.8 2-.8 2.8 0l2.6 2.4c.4.4 1 .6 1.6.6s1.2-.2 1.6-.6L17.8 3c.8-.8 2-.8 2.8 0l1.4 1.3"></path></svg>,
+      LockKeyholeOpen: () => <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>,
+      HelpCircle: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    };
+
+    const ZEUS_SYMBOLS = ['⚡', '🦅', '🏛️', '👑', '⛈️'];
+
+    function ZeusChallengeExtended() {
+      const fragmentsData = [
+        { id: 'vis', type: 'Visible', name: 'Composición Química', targetFocus: 35, targetGain: 70 },
+        { id: 'ir', type: 'Infrared', name: 'Datos de Temperatura', targetFocus: 95, targetGain: 40 },
+        { id: 'radio', type: 'Radio', name: 'Velocidad del Viento', targetFocus: 155, targetGain: 85 }
+      ];
+
+      // Estados de Navegación y Ayuda
+      const [gamePhase, setGamePhase] = useState(1);
+      const [activeTab, setActiveTab] = useState('Visible');
+      const [showHelpModal, setShowHelpModal] = useState(false);
+      
+      // FASE 1: Controles e Inyección
+      const [focusValue, setFocusValue] = useState(0); 
+      const [gainValue, setGainValue] = useState(10);
+      const [isCalibrated, setIsCalibrated] = useState(false);
+      const [unlockedSlots, setUnlockedSlots] = useState({ Visible: false, Infrared: false, Radio: false });
+      const [decryptingSlot, setDecryptingSlot] = useState(null);
+      const [targetSymbol, setTargetSymbol] = useState('');
+      const [decryptProgress, setDecryptProgress] = useState(0);
+
+      // FASE 2: Acertijo de Criptografía de Gases Atómicos (Masa Molecular)
+      // Los compuestos de Júpiter ordenados por masa molecular ascendente: Hidrógeno (2u) -> Helio (4u) -> Metano (16u)
+      const gasDatabase = [
+        { id: 'CH4', name: 'Compuesto C-Gamma', formula: 'CH₄', mass: '16.04 u', temp: '-161°C' },
+        { id: 'He', name: 'Compuesto B-Alpha', formula: 'He', mass: '4.00 u', temp: '-268°C' },
+        { id: 'H2', name: 'Compuesto A-Beta', formula: 'H₂', mass: '2.01 u', temp: '-252°C' }
+      ];
+      
+      const [playerSequence, setPlayerSequence] = useState([]);
+      const [phase2Feedback, setPhase2Feedback] = useState('ESPERANDO TRANSMISIÓN CRIPTOGRÁFICA');
+
+      // Alertas Visuales Globales
+      const [errorTrigger, setErrorTrigger] = useState(false);
+      const [successTrigger, setSuccessTrigger] = useState(false);
+      const [gameCleared, setGameCleared] = useState(false);
+
+      const currentFragment = fragmentsData.find(f => f.type === activeTab);
+
+      // Evaluar calibración (Fase 1)
+      useEffect(() => {
+        if (!currentFragment || gamePhase !== 1) return;
+        const diffFocus = Math.abs(focusValue - currentFragment.targetFocus);
+        const diffGain = Math.abs(gainValue - currentFragment.targetGain);
+        setIsCalibrated(diffFocus <= 5 && diffGain <= 5);
+      }, [focusValue, gainValue, activeTab, gamePhase]);
+
+      // Generador de símbolos dinámicos
+      useEffect(() => {
+        if (decryptingSlot) {
+          setTargetSymbol(ZEUS_SYMBOLS[Math.floor(Math.random() * ZEUS_SYMBOLS.length)]);
+        }
+      }, [decryptingSlot, decryptProgress]);
+
+      // Cambio automático a Fase 2 al completar la primera
+      useEffect(() => {
+        if (unlockedSlots.Visible && unlockedSlots.Infrared && unlockedSlots.Radio && gamePhase === 1) {
+          setSuccessTrigger(true);
+          const timer = setTimeout(() => {
+            setGamePhase(2);
+            setSuccessTrigger(false);
+          }, 2000);
+          return () => clearTimeout(timer);
+        }
+      }, [unlockedSlots, gamePhase]);
+
+      // Acciones de Fase 1
+      const handleInjectData = () => {
+        if (isCalibrated && !unlockedSlots[activeTab]) {
+          setDecryptingSlot(activeTab);
+          setDecryptProgress(0);
+        } else {
+          triggerError();
+        }
+      };
+
+      const handleSymbolClick = (symbol) => {
+        if (symbol === targetSymbol) {
+          const next = decryptProgress + 34;
+          if (next >= 100) {
+            setUnlockedSlots(prev => ({ ...prev, [decryptingSlot]: true }));
+            setDecryptingSlot(null);
+            setFocusValue(0);
+            setGainValue(10);
+          } else {
+            setDecryptProgress(next);
+          }
+        } else {
+          triggerError();
+          setDecryptingSlot(null); 
+        }
+      };
+
+      // ACERTIJO FASE 2: Ordenar del más ligero al más pesado (H2 -> He -> CH4)
+      const handleGasClick = (gasId) => {
+        if (gameCleared) return;
+
+        const nextSequence = [...playerSequence, gasId];
+        setPlayerSequence(nextSequence);
+
+        const stepIndex = nextSequence.length - 1;
+        const solutionOrder = ['H2', 'He', 'CH4']; // Orden correcto por masa
+
+        if (nextSequence[stepIndex] !== solutionOrder[stepIndex]) {
+          setPhase2Feedback('🚨 RECHAZO TÉRMICO: SECUENCIA DE MASA ERRÓNEA. RESETEANDO...');
+          triggerError();
+          setPlayerSequence([]);
+          return;
+        }
+
+        if (nextSequence.length === 3) {
+          setPhase2Feedback('✓ NÚCLEO EQUILIBRADO: CONJUNCIÓN DISIPADA CON ÉXITO');
+          setGameCleared(true);
+        } else {
+          setPhase2Feedback(`COMPUESTO ESTABLECIDO. PROCESANDO COMPONENTE [${nextSequence.length}/3]...`);
+        }
+      };
+
+      const triggerError = () => {
+        setErrorTrigger(true);
+        setTimeout(() => setErrorTrigger(false), 600);
+      };
+
+      const currentDeviation = currentFragment 
+        ? Math.sqrt(Math.pow(focusValue - currentFragment.targetFocus, 2) + Math.pow(gainValue - currentFragment.targetGain, 2))
+        : 100;
+
+      return (
+        <div className={`w-full h-full relative overflow-hidden flex flex-col justify-between p-4 md:p-6 transition-colors duration-300 bg-gradient-to-b ${errorTrigger ? 'from-red-950 via-slate-950 to-red-950 animate-pulse-fast' : 'from-jupiter-dark via-slate-950 to-amber-950'}`}>
+          
+          {/* CABECERA */}
+          <header className="w-full flex justify-between items-center z-10 border-b border-jupiter-tan/20 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-jupiter-dark border border-jupiter-gold/30 rounded-full text-jupiter-gold shadow-[0_0_10px_rgba(255,215,0,0.2)]">
+                <Icons.Zap />
+              </div>
+              <div>
+                <h1 className="text-md md:text-xl font-bold tracking-wider text-jupiter-cream uppercase flex items-center gap-2">
+                  Los Ojos de Zeus
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${gamePhase === 1 ? 'text-jupiter-gold bg-jupiter-red/30 border-jupiter-orange/30' : 'text-purple-400 bg-purple-950/40 border-purple-500/30'}`}>
+                    {gamePhase === 1 ? 'Fase 01: Sintonía Estática' : 'Fase 02: Descifrado Molecular'}
+                  </span>
+                </h1>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowHelpModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 rounded-xl text-amber-400 font-mono text-xs font-bold transition-all"
+              >
+                <Icons.HelpCircle />
+                <span>GUÍA DE OPERACIÓN</span>
+              </button>
+
+              <div className="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl font-mono text-xs">
+                <span className="text-jupiter-electric">JUNO_SYS_V8</span>
+                <Icons.Radio />
+              </div>
+            </div>
+          </header>
+
+          {/* TRANSICIÓN */}
+          {successTrigger && (
+            <div className="absolute inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center font-mono">
+              <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <h2 className="text-lg font-bold text-purple-400 tracking-widest">TRANSMITIENDO TELEMETRÍA ATÓMICA</h2>
+              <p className="text-xs text-slate-400 mt-1">Abriendo compuertas de análisis atmosférico de la Gran Mancha Roja...</p>
+            </div>
+          )}
+
+          {/* VENTANA DE AYUDA / MANUAL CON LA PISTA LÓGICA */}
+          {showHelpModal && (
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 font-mono shadow-2xl relative">
+                <h3 className="text-md font-bold text-amber-400 uppercase tracking-widest border-b border-slate-800 pb-2 mb-3 flex items-center gap-2">
+                  <Icons.HelpCircle /> Manual de Análisis Químico
+                </h3>
+                
+                {gamePhase === 1 ? (
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+                    <p><strong className="text-jupiter-gold">Objetivo:</strong> Sintonizar los 3 espectros planetarios alterando los diales inferiores.</p>
+                    <p><strong className="text-jupiter-electric">Pistas de Telemetría:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 bg-slate-950 p-2.5 rounded border border-slate-800 text-[11px]">
+                      <li>Espectro Visible: Calibrar a <span className="text-white font-bold">35° / 70 GHz</span></li>
+                      <li>Infrarrojo: Calibrar a <span className="text-white font-bold">95° / 40 GHz</span></li>
+                      <li>Radio: Calibrar a <span className="text-white font-bold">155° / 85 GHz</span></li>
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+                    <p><strong className="text-purple-400">Objetivo del Acertijo:</strong> Estabilizar los gases de la tormenta gigante siguiendo las instrucciones cifradas de la sonda.</p>
+                    <p><strong className="text-jupiter-orange">Guía de Cripto-Masa Planetaria:</strong></p>
+                    <p className="bg-slate-950 p-3 rounded border border-slate-800 text-[11px] leading-relaxed">
+                      El comando exige ingresar los gases en base a la pista del monitor. <br /><br />
+                      Si la alerta dice <span className="text-jupiter-electric font-bold">"DENSIDAD ASCENDENTE"</span>, significa que debes ordenarlos del compuesto más ligero (menor número de Masa Atómica <span className="text-white font-bold">u</span>) al más denso (mayor masa).
+                      <br /><br />
+                      • Hidrógeno (H₂): <span className="text-white font-bold">2.01 u</span><br />
+                      • Helio (He): <span className="text-white font-bold">4.00 u</span><br />
+                      • Metano (CH₄): <span className="text-white font-bold">16.04 u</span>
+                    </p>
+                  </div>
+                )}
+
+                <button 
+                  onClick={() => setShowHelpModal(false)}
+                  className="mt-5 w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase transition-colors"
+                >
+                  Regresar a la Misión
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* PANEL PRINCIPAL */}
+          <main className="grid grid-cols-1 lg:grid-cols-12 gap-5 my-auto items-stretch z-10 w-full max-w-7xl mx-auto flex-1 py-4 overflow-hidden">
+            
+            {/* IZQUIERDA: VISOR DE LA TORMENTA Y ACERTIJO CRÍPTICO */}
+            <section className="lg:col-span-6 flex flex-col justify-between gap-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-4 backdrop-blur relative">
+              
+              {gamePhase === 1 ? (
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 w-full">
+                  {fragmentsData.map((tab) => (
+                    <button
+                      key={tab.id}
+                      disabled={!!decryptingSlot}
+                      onClick={() => { setActiveTab(tab.type); setFocusValue(0); setGainValue(10); }}
+                      className={`flex-1 py-2 px-1 text-[11px] font-mono font-bold uppercase rounded-lg transition-all flex items-center justify-center gap-1.5
+                        ${activeTab === tab.type 
+                          ? 'bg-gradient-to-r from-jupiter-red to-jupiter-orange text-white shadow-md' 
+                          : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                        } ${unlockedSlots[tab.type] ? 'border border-emerald-500/30' : ''} ${decryptingSlot ? 'opacity-30' : ''}`}
+                    >
+                      {tab.type === 'Visible' && <Icons.Eye />}
+                      {tab.type === 'Infrared' && <Icons.Flame />}
+                      {tab.type === 'Radio' && <Icons.Waves />}
+                      {tab.type} {unlockedSlots[tab.type] ? '✓' : ''}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full flex flex-col gap-1 text-center font-mono bg-slate-950 p-3 rounded-xl border border-purple-500/30">
+                  <span className="text-[10px] uppercase text-slate-500 tracking-widest">Mensaje Cifrado Recibido de la Mancha Roja:</span>
+                  {/* EL ACERTIJO: Pista escrita abstracta */}
+                  <div className="text-md font-bold text-purple-400 tracking-widest uppercase my-1 bg-purple-950/30 py-2 rounded border border-purple-500/20 animate-pulse">
+                    ⚠️ ALERTA: SECUENCIA DE DENSIDAD ASCENDENTE ⚠️
+                  </div>
+                </div>
+              )}
+
+              {/* Visor Óptico */}
+              <div className="relative flex-1 min-h-[240px] rounded-xl bg-slate-950 overflow-hidden border border-slate-800 flex items-center justify-center">
+                <div 
+                  className="absolute w-64 h-64 rounded-full jupiter-storm opacity-40 mix-blend-screen pointer-events-none bg-gradient-to-tr from-jupiter-red via-jupiter-orange to-jupiter-gold" 
+                  style={{ 
+                    filter: gamePhase === 1 
+                      ? `blur(${Math.min(18, currentDeviation / 4)}px) saturate(${isCalibrated ? 2 : 0.4})`
+                      : `blur(${gameCleared ? '0px' : '5px'}) saturate(${playerSequence.length > 0 ? 1.5 : 0.5})`
+                  }}
+                />
+
+                <div className="absolute inset-0 bg-[radial-gradient(#ffffff03_1px,transparent_1px)] bg-[size:16px_16px]" />
+
+                <div className="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-800 p-2 rounded font-mono text-[10px] space-y-0.5 z-20">
+                  {gamePhase === 1 ? (
+                    <div>Frecuencia de Onda: <span className={isCalibrated ? "text-emerald-400 font-bold" : "text-jupiter-orange font-bold animate-pulse"}>{isCalibrated ? 'SINTONIZADA' : 'INCOMPATIBLE'}</span></div>
+                  ) : (
+                    <div>Analizador de Masa: <span className={gameCleared ? "text-emerald-400 font-bold" : "text-purple-400"}>{phase2Feedback}</span></div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* DERECHA: CONSOLA DE MANDOS E INTERACTIVIDAD */}
+            <section className="lg:col-span-6 flex flex-col justify-between gap-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-4 backdrop-blur">
+              
+              {/* Información Contextual */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs">
+                <p className="text-jupiter-cream font-bold mb-1">
+                  {gamePhase === 1 ? `📡 Canal Actual: ${activeTab}` : '🧪 Inyectores Atmosféricos Desconocidos'}
+                </p>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {gamePhase === 1 
+                    ? 'Alinea los diales analógicos. Si tienes dudas, abre el manual presionando "GUÍA DE OPERACIÓN".'
+                    : 'La computadora de la JUNO ha camuflado los nombres de los compuestos. Analiza las masas moleculares moleculares (u) de cada botón para descifrar el acertijo.'}
+                </p>
+              </div>
+
+              {/* INTERFAZ CENTRAL */}
+              <div className="flex-1 flex flex-col justify-center py-2">
+                {gamePhase === 1 ? (
+                  !decryptingSlot ? (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center font-mono">
+                        <div>
+                          <p className="text-xs text-slate-300 font-bold">{currentFragment?.name}</p>
+                          <p className="text-[10px] text-slate-500">Misión: Buscar Sintonía Fina</p>
+                        </div>
+                        <div className={`text-[10px] px-2 py-0.5 rounded font-bold ${unlockedSlots[activeTab] ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/40 text-amber-500 border border-amber-500/30'}`}>
+                          {unlockedSlots[activeTab] ? 'CAPTURADO' : 'SISTEMA VACÍO'}
+                        </div>
+                      </div>
+
+                      {!unlockedSlots[activeTab] ? (
+                        <button
+                          onClick={handleInjectData}
+                          disabled={!isCalibrated}
+                          className={`w-full py-3 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all duration-300 border
+                            ${isCalibrated 
+                              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-950 border-emerald-400 animate-pulse' 
+                              : 'bg-slate-950 text-slate-600 border-slate-800 cursor-not-allowed'
+                            }`}
+                        >
+                          {isCalibrated ? '⚡ INYECTAR DATOS EN TERMINAL ⚡' : '⚠️ AJUSTAR CONTROL ANALÓGICO'}
+                        </button>
+                      ) : (
+                        <div className="w-full text-center font-mono text-xs text-emerald-400 py-3 bg-emerald-950/20 border border-emerald-500/20 rounded-xl">
+                          ✓ Datos integrados correctamente en el Relicario.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950 p-4 rounded-xl border border-jupiter-gold/20 flex flex-col items-center justify-center font-mono">
+                      <p className="text-[11px] text-jupiter-gold uppercase font-bold tracking-wider mb-2">Descompresión por Pulsos</p>
+                      <div className="text-3xl p-3 bg-slate-900 border border-slate-800 rounded-lg mb-3 w-16 text-center">{targetSymbol}</div>
+                      <div className="flex gap-2 mb-3">
+                        {ZEUS_SYMBOLS.map((symbol, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSymbolClick(symbol)}
+                            className="w-10 h-10 bg-slate-800 hover:bg-jupiter-gold hover:text-slate-950 transition-colors rounded-lg font-bold text-lg flex items-center justify-center"
+                          >
+                            {symbol}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                        <div className="bg-jupiter-electric h-full transition-all" style={{ width: `${decryptProgress}%` }} />
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  /* EL ACERTIJO GRÁFICO TÉCNICO (Sin decir los nombres de los compuestos directamente) */
+                  <div className="grid grid-cols-1 gap-2.5 font-mono">
+                    {gasDatabase.map((gas) => (
+                      <button
+                        key={gas.id}
+                        onClick={() => handleGasClick(gas.id)}
+                        className="w-full p-3.5 bg-slate-950 border border-slate-800 hover:border-purple-500/50 rounded-xl transition-all flex justify-between items-center text-left group"
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-slate-300 uppercase tracking-wider group-hover:text-purple-400 transition-colors">{gas.name}</p>
+                          <div className="flex gap-2 mt-1 text-[10px] text-slate-500">
+                            <span>Fórmula: <strong className="text-slate-400">{gas.formula}</strong></span>
+                            <span>• P. Licuación: <strong className="text-slate-400">{gas.temp}</strong></span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-bold font-mono px-2 py-1 bg-slate-900 text-purple-400 rounded border border-slate-800">{gas.mass}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* PANEL DE CONTROL INFERIOR */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono">
+                {gamePhase === 1 ? (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-[10px] text-slate-400 uppercase font-bold">
+                        <span>🎚️ Enfoque de Lente</span>
+                        <span className="text-jupiter-gold">{focusValue}°</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="180" value={focusValue} disabled={!!decryptingSlot}
+                        onChange={(e) => setFocusValue(parseInt(e.target.value))}
+                        className="w-full bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer mt-1"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-[10px] text-slate-400 uppercase font-bold">
+                        <span>🎛️ Modulador de Plasma</span>
+                        <span className="text-jupiter-electric">{gainValue} GHz</span>
+                      </div>
+                      <input 
+                        type="range" min="10" max="100" value={gainValue} disabled={!!decryptingSlot}
+                        onChange={(e) => setGainValue(parseInt(e.target.value))}
+                        className="w-full bg-slate-800 rounded-lg appearance-none h-1.5 cursor-pointer mt-1"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-2 text-xs text-slate-400 flex flex-col gap-1 items-center">
+                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-ping mb-1"></div>
+                    <span>Cámara de Inyección Molecular Acoplada:</span>
+                    <span className="text-[11px] font-bold text-purple-400 tracking-widest bg-slate-900 px-3 py-1 rounded mt-1 border border-slate-800">
+                      {playerSequence.length === 0 ? 'SISTEMA LIMPIO' : `INYECTADOS: ${playerSequence.length} / 3`}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* TOTALIZADOR GENERAL */}
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 font-mono text-[11px]">
+                <div className="flex justify-between text-slate-500 mb-1">
+                  <span>{gamePhase === 1 ? 'REGISTROS DE ZEUS PROCESADOS' : 'ESTABILIZACIÓN DEL FIN DE LA TORMENTA'}</span>
+                  <span className="text-jupiter-gold font-bold">
+                    {gamePhase === 1 
+                      ? `${Object.values(unlockedSlots).filter(Boolean).length} / 3`
+                      : gameCleared ? '100%' : `${Math.floor((playerSequence.length / 3) * 100)}%`}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full bg-gradient-to-r transition-all duration-300 ${gamePhase === 1 ? 'from-jupiter-orange to-jupiter-gold' : 'from-purple-500 to-indigo-500'}`}
+                    style={{ 
+                      width: gamePhase === 1 
+                        ? `${(Object.values(unlockedSlots).filter(Boolean).length / 3) * 100}%` 
+                        : `${(playerSequence.length / 3) * 100}%` 
+                    }}
+                  />
+                </div>
+              </div>
+
+            </section>
+          </main>
+
+          {/* MENÚ DE VICTORIA TOTAL */}
+          {gameCleared && (
+            <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+              <div className="max-w-md bg-slate-900 p-8 rounded-2xl border border-jupiter-gold shadow-[0_0_40px_rgba(255,215,0,0.2)] flex flex-col items-center">
+                <div className="w-14 h-14 bg-jupiter-gold text-slate-950 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                  <Icons.LockKeyholeOpen />
+                </div>
+                <h2 className="text-xl font-bold tracking-wider text-jupiter-cream uppercase mb-2 font-mono">¡CONJUNCIÓN ESTABLECIDA!</h2>
+                <p className="text-xs text-slate-400 leading-relaxed mb-6 font-mono">
+                  Has descifrado el acertijo de la masa atómica. La Gran Mancha Roja ha cesado su expansión destructiva y los datos de Zeus están listificados en la base central de la misión JUNO.
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold tracking-widest text-xs rounded-lg uppercase font-mono"
+                >
+                  Reiniciar Desafío
+                </button>
+              </div>
+            </div>
+          )}
+
+          <footer className="w-full text-center py-1 text-[9px] text-slate-600 font-mono tracking-widest z-10">
+            SISTEMA DE CALIBRACIÓN DIRECTA // JUNO_MISSION_2026
+          </footer>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ZeusChallengeExtended />);
+  </script>
+</body>
+</html>

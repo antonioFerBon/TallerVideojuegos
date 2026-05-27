@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-stone-950">
+<head>
+  <meta charset="UTF-8">
+  <title>La Balística de Ares: El Resonador Gravitatorio de Marte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ares: {
+              crimson: '#991B1B',
+              blood: '#7F1D1D',
+              rust: '#C2410C',
+              iron: '#451A03',
+              bronze: '#B45309',
+              gold: '#F59E0B',
+              sand: '#FDE68A',
+              laser: '#EF4444',
+              plasma: '#10B981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .title-font {
+      font-family: 'Orbitron', sans-serif;
+    }
+    
+    /* ANIMACIÓN DE ERROR: SACUDIDA BRUSCA Y PARPADEO ROJO NEÓN (RESTRICCIÓN OBLIGATORIA 2) */
+    @keyframes heavy-shake {
+      0%, 100% { transform: translate(0, 0); filter: drop-shadow(0 0 0px transparent); }
+      10% { transform: translate(-6px, 4px) rotate(-2deg); background-color: rgba(239, 68, 68, 0.25); }
+      30% { transform: translate(8px, -4px) rotate(3deg); filter: drop-shadow(0 0 15px #EF4444); }
+      50% { transform: translate(-8px, -5px) rotate(-1deg); background-color: rgba(239, 68, 68, 0.35); }
+      70% { transform: translate(6px, 6px) rotate(2deg); filter: drop-shadow(0 0 20px #EF4444); }
+      90% { transform: translate(-3px, -1px) rotate(-2deg); }
+    }
+    .shake-error {
+      animation: heavy-shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+      border-color: #EF4444 !important;
+    }
+
+    /* ANIMACIÓN DE ÉXITO: ENCAJE CON DESTELLO VERDE/DORADO (RESTRICCIÓN OBLIGATORIA 2) */
+    @keyframes success-glow {
+      0% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
+      50% { filter: brightness(1.4) drop-shadow(0 0 25px #10B981); transform: scale(1.01); }
+      100% { filter: brightness(1.1) drop-shadow(0 0 8px #F59E0B); }
+    }
+    .success-blink {
+      animation: success-glow 0.8s ease-in-out forwards;
+      border-color: #10B981 !important;
+    }
+
+    /* ESTILIZACIÓN DE MANDOS DESLIZADORES */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 10px;
+      background: #451A03;
+      border-radius: 4px;
+      border: 1px solid #C2410C;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 24px;
+      width: 24px;
+      border-radius: 50%;
+      background: #F59E0B;
+      cursor: pointer;
+      margin-top: -7px;
+      box-shadow: 0 0 10px #F59E0B;
+      border: 2px solid #7F1D1D;
+    }
+
+    .marte-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(194, 65, 12, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(194, 65, 12, 0.04) 1px, transparent 1px);
+    }
+
+    #spacecraft {
+      transition: top 0.4s ease-out, left 0.4s ease-out, transform 0.2s ease-out;
+    }
+  </style>
+</head>
+<body class="h-full text-stone-200 overflow-hidden bg-stone-950 marte-grid select-none">
+
+  <div class="h-full flex flex-col p-4 md:p-6 relative z-10">
+    
+    <header class="flex justify-between items-center mb-4 border-b-2 border-ares-rust/40 pb-3 bg-stone-900/80 p-4 rounded-t-xl backdrop-blur-sm">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-ares-iron border border-ares-gold/50 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+          <i data-lucide="orbit" class="w-6 h-6 text-ares-gold"></i>
+        </div>
+        <div>
+          <h1 class="title-font text-lg md:text-2xl font-black tracking-tight text-ares-sand uppercase">
+            La Balística de Ares
+          </h1>
+          <p id="sub-title-text" class="text-stone-400 font-mono text-[11px] tracking-wider uppercase">EJERCICIO 1: EL ÁNGULO Y LA VELOCIDAD DE TRASLACIÓN</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <button onclick="openHelp()" class="flex items-center gap-1.5 px-3 py-1 bg-ares-bronze/20 hover:bg-ares-bronze/40 border border-ares-rust/50 rounded text-xs font-mono text-ares-gold transition-colors">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>MANUAL REFUERZO</span>
+        </button>
+        <div class="bg-black border border-stone-800 px-3 py-1.5 rounded-md flex items-center gap-2 font-mono text-xs">
+          <span id="status-dot" class="w-2 h-2 rounded-full bg-ares-gold animate-pulse"></span>
+          <span id="global-status">FASE_1: AJUSTE BALÍSTICO</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch overflow-hidden">
+      
+      <section id="radar-viewport" class="lg:col-span-7 relative bg-black border border-stone-800 rounded-2xl overflow-hidden flex items-center justify-center">
+        
+        <div class="absolute inset-0 opacity-15 pointer-events-none">
+          <div class="absolute top-1/2 left-0 right-0 h-px bg-ares-rust"></div>
+          <div class="absolute left-1/2 top-0 bottom-0 w-px bg-ares-rust"></div>
+          <div id="grid-ring-target" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] border-2 border-ares-plasma/40 rounded-full"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] border border-dashed border-ares-gold/40 rounded-full"></div>
+        </div>
+
+        <div class="relative w-36 h-36 rounded-full bg-gradient-to-br from-ares-rust via-ares-crimson to-stone-900 border border-ares-gold/30 shadow-[0_0_40px_rgba(194,65,12,0.3)] z-10 flex items-center justify-center text-center">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(245,158,11,0.2)_0%,transparent_70%)]"></div>
+          <span class="text-[9px] font-mono tracking-widest text-ares-sand font-bold p-2">MARTE<br><span class="text-stone-500 font-normal">NÚCLEO FE</span></span>
+          
+          <div id="vectorizer-arrow" class="absolute w-1 h-24 origin-bottom transition-transform duration-100" style="bottom: 50%; transform: rotate(0deg); background: linear-gradient(to top, #F59E0B, transparent);">
+            <div class="absolute -top-2 -left-2 text-ares-gold animate-bounce">
+              <i data-lucide="move-up" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <div id="target-orbit-ring" class="absolute w-[280px] h-[280px] border-2 border-dashed border-ares-plasma/60 rounded-full pointer-events-none flex items-center justify-center">
+          <span id="ring-label-text" class="absolute top-1 bg-stone-900 border border-ares-plasma text-ares-plasma font-mono text-[8px] px-1.5 rounded font-bold uppercase">Rango de Órbita Circular Perfecta</span>
+        </div>
+
+        <div id="spacecraft" class="absolute w-8 h-8 text-ares-gold z-20" style="top: 25%; left: 25%; transform: rotate(0deg);">
+          <i id="spacecraft-icon" data-lucide="rocket" class="w-8 h-8 drop-shadow-[0_0_8px_#F59E0B]"></i>
+          <span id="spacecraft-tag" class="absolute -bottom-4 left-1/2 -translate-x-1/2 font-mono text-[8px] bg-stone-900 px-1 border border-stone-700 whitespace-nowrap uppercase">Nave_Cadete</span>
+        </div>
+
+        <div class="absolute bottom-4 left-4 bg-stone-900/90 border border-stone-800 p-2.5 rounded-md font-mono text-[10px] text-stone-400 max-w-xs">
+          <p id="radar-log"><i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-ares-gold"></i> <strong>Instrucciones:</strong> Mueve el dial de dirección para ver rotar la aguja de empuje hacia la órbita estable.</p>
+        </div>
+      </section>
+
+      <section id="control-sidebar" class="lg:col-span-5 flex flex-col justify-between bg-stone-900/50 border border-ares-rust/30 rounded-2xl p-5 backdrop-blur-sm transition-all duration-300">
+        
+        <div>
+          <div class="flex items-center gap-2 mb-2 text-ares-gold font-mono text-xs uppercase font-bold tracking-wider">
+            <i data-lucide="message-square" class="w-4 h-4 text-ares-rust"></i>
+            <span>Órdenes de la Consola Militar</span>
+          </div>
+          <div id="ares-speech" class="bg-black/80 p-3.5 rounded-xl border border-ares-rust/40 text-xs font-mono leading-relaxed text-stone-300">
+            "¡Cadetes de 5º grado! Nuestra nave espacial necesita entrar en equilibrio. Para que la órbita no colapse por la gravedad de Marte, configurad una <strong>Dirección de Aguja de 45°</strong> y una <strong>Velocidad de Traslación de 70 km/s</strong>."
+          </div>
+        </div>
+
+        <div class="space-y-6 my-auto py-4">
+          
+          <div id="wrapper-control-1" class="space-y-2 bg-black/40 p-3 rounded-lg border border-stone-800">
+            <div class="flex justify-between font-mono text-xs uppercase font-bold text-ares-sand">
+              <span id="label-control-1"><i data-lucide="compass" class="w-3.5 h-3.5 inline mr-1 text-ares-gold"></i> Dirección de la Aguja</span>
+              <span id="val-control-1" class="text-ares-gold bg-ares-iron/50 px-2 py-0.5 rounded">0°</span>
+            </div>
+            <input type="range" id="slider-control-1" min="0" max="90" value="0" oninput="executeTelemetryRealtime()">
+            <div id="footer-control-1" class="flex justify-between text-[9px] text-stone-500">
+              <span>0° (Vertical)</span>
+              <span>45° (Diagonal Óptima)</span>
+              <span>90° (Horizontal)</span>
+            </div>
+          </div>
+
+          <div id="wrapper-control-2" class="space-y-2 bg-black/40 p-3 rounded-lg border border-stone-800">
+            <div class="flex justify-between font-mono text-xs uppercase font-bold text-ares-sand">
+              <span id="label-control-2"><i data-lucide="gauge" class="w-3.5 h-3.5 inline mr-1 text-ares-laser"></i> Velocidad de Traslación</span>
+              <span id="val-control-2" class="text-ares-laser bg-ares-iron/50 px-2 py-0.5 rounded">20 KM/S</span>
+            </div>
+            <input type="range" id="slider-control-2" min="20" max="100" value="20" oninput="executeTelemetryRealtime()">
+            <div id="footer-control-2" class="flex justify-between text-[9px] text-stone-500">
+              <span>20 km/s (Bajo)</span>
+              <span>100 km/s (Escape)</span>
+            </div>
+          </div>
+
+          <button id="action-trigger-btn" onclick="checkCurrentGameStage()" class="w-full py-4 bg-gradient-to-r from-ares-crimson to-ares-rust hover:from-ares-rust hover:to-ares-gold text-white font-black title-font tracking-widest uppercase rounded-xl shadow-lg transition-transform active:scale-95 border-b-4 border-ares-blood">
+            ⚡ COMPROBAR VECTOR DE ÓRBITA
+          </button>
+        </div>
+
+        <div class="bg-stone-950 p-2.5 rounded-lg border border-stone-800 font-mono text-[10px] text-stone-400 flex items-center justify-between">
+          <span>Estabilización del Templo de Marte:</span>
+          <span id="progress-percentage-tag" class="text-ares-gold font-bold">0%</span>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="mt-4 flex justify-between items-center font-mono text-[10px] text-stone-600 border-t border-stone-900 pt-2 uppercase tracking-widest">
+      <span>Consola Científica Escolar // Marte 2026</span>
+      <span>Ciencias de la Tierra y Física del Espacio</span>
+    </footer>
+  </div>
+
+  <div id="help-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="max-w-sm w-full bg-stone-900 border-2 border-ares-bronze rounded-2xl p-6 font-mono shadow-2xl relative">
+      <button onclick="closeHelp()" class="absolute top-3 right-3 text-stone-500 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <h2 class="title-font text-ares-gold text-sm font-bold mb-4 uppercase border-b border-ares-rust/30 pb-1.5">Datos del Resonador</h2>
+      <div id="help-dynamic-content" class="space-y-3 text-xs text-stone-300 leading-relaxed">
+        <p><strong>EJERCICIO 1:</strong> Ajusta la dirección de la aguja a <strong class="text-ares-gold">45°</strong> y la velocidad a <strong class="text-ares-laser">70 km/s</strong> para ingresar en la zona segura circular.</p>
+      </div>
+      <button onclick="closeHelp()" class="w-full mt-5 py-2.5 bg-ares-bronze text-stone-950 font-bold rounded-lg uppercase hover:bg-ares-gold transition-colors text-xs">Cerrar Manual</button>
+    </div>
+  </div>
+
+  <div id="victory-screen" class="fixed inset-0 z-[200] bg-stone-950/95 flex flex-col items-center justify-center p-4 text-center hidden">
+    <div class="max-w-md w-full bg-gradient-to-b from-stone-900 to-black border border-ares-gold rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+      
+      <div id="giant-lock-box" class="mb-6">
+        <div class="w-20 h-20 bg-ares-iron border-2 border-ares-gold rounded-2xl mx-auto flex items-center justify-center shadow-lg transition-transform duration-700">
+           <i data-lucide="lock" id="lock-icon" class="w-10 h-10 text-ares-gold"></i>
+        </div>
+      </div>
+
+      <h2 class="title-font text-2xl md:text-3xl font-black text-white mb-4 uppercase tracking-wide">¡Sistema Desbloqueado!</h2>
+      <p class="font-mono text-stone-400 text-xs leading-relaxed mb-6 bg-black/40 p-3 rounded-lg border border-stone-800">
+        ¡Felicidades cadetes! Habéis resuelto los dos desafíos balísticos fundamentales de Marte: calculando la dirección óptima de órbita y compensando el tirón de gravedad del Sol con los motores de empuje. ¡Marte está a salvo y equilibrado!
+      </p>
+      
+      <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-ares-gold to-ares-bronze text-stone-950 font-black title-font text-xs rounded-xl shadow-md uppercase tracking-wider transition-transform hover:scale-102">
+        ¡NIVEL COMPLETADO CON ÉXITO!
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Inicializar componentes iconográficos al arrancar
+    lucide.createIcons();
+
+    // Variable de control de ejercicio: 1 = Ejercicio Base (Vectores), 2 = Ejercicio Secundario (Gravedad/Motores)
+    let currentStage = 1;
+
+    // Ejecución de la telemetría gráfica en tiempo real (Mueve la aguja y la nave de forma dinámica)
+    function executeTelemetryRealtime() {
+      const control1 = document.getElementById('slider-control-1').value;
+      const control2 = document.getElementById('slider-control-2').value;
+
+      if (currentStage === 1) {
+        // --- EJERCICIO 1: CONFIGURACIÓN DE ÁNGULO Y TRASLACIÓN ---
+        document.getElementById('val-control-1').innerText = control1 + '°';
+        document.getElementById('val-control-2').innerText = control2 + ' KM/S';
+
+        // ROTACIÓN DE LA AGUJA DE DIRECCIÓN (Se mueve exactamente con el slider de dirección)
+        const arrow = document.getElementById('vectorizer-arrow');
+        arrow.style.transform = `rotate(${control1}deg)`;
+
+        // Movimiento interactivo de la Nave Cadete en el Radar
+        const spacecraft = document.getElementById('spacecraft');
+        let calculatedLeft = 25 + (control1 * 0.35);
+        let calculatedTop = 25 + (control2 * 0.45);
+        spacecraft.style.left = calculatedLeft + '%';
+        spacecraft.style.top = calculatedTop + '%';
+        spacecraft.style.transform = `rotate(${control1}deg)`;
+
+      } else if (currentStage === 2) {
+        // --- EJERCICIO 2: BALANCE DE GRAVEDAD VS EMPUJE MOTOR ---
+        document.getElementById('val-control-1').innerText = control1 + ' G';
+        document.getElementById('val-control-2').innerText = control2 + ' KN';
+
+        // En el Ejercicio 2, el Slider 1 (Gravedad del Sol) mueve la aguja como indicador de alerta solar
+        const arrow = document.getElementById('vectorizer-arrow');
+        arrow.style.transform = `rotate(${control1 * 9}deg)`; // Simula desviación
+
+        // La nave cambia su posición en el radar dependiendo de la diferencia entre Gravedad y Motores
+        const spacecraft = document.getElementById('spacecraft');
+        let equilibriumOffset = (control2 - (control1 * 10)); // Equilibrio cuando Motor = Gravedad * 10
+        let radarPositionX = 55 + (equilibriumOffset * 0.5);
+        
+        spacecraft.style.left = radarPositionX + '%';
+        spacecraft.style.top = '45%';
+      }
+    }
+
+    // Distribuidor táctico de fases al presionar el botón de comprobación
+    function checkCurrentGameStage() {
+      if (currentStage === 1) {
+        evaluateFirstExercise();
+      } else if (currentStage === 2) {
+        evaluateSecondExercise();
+      }
+    }
+
+    // --- EVALUACIÓN Y VALIDACIÓN DEL PRIMER EJERCICIO ---
+    function evaluateFirstExercise() {
+      const angle = parseInt(document.getElementById('slider-control-1').value);
+      const speed = parseInt(document.getElementById('slider-control-2').value);
+      const sidebar = document.getElementById('control-sidebar');
+      const radar = document.getElementById('radar-viewport');
+
+      // Parámetros exactos de victoria explicados para niños de 5º de primaria
+      if (angle === 45 && speed === 70) {
+        
+        // Efecto visual verde/dorado de acierto (Restricción 2)
+        radar.classList.add('success-blink');
+        document.getElementById('progress-percentage-tag').innerText = '50%';
+        
+        setTimeout(() => {
+          radar.classList.remove('success-blink');
+          setupSecondExerciseInterface(); // Carga automática del juego secundario
+        }, 1200);
+
+      } else {
+        // Efecto visual rojo neón y temblor brusco de fallo (Restricción 2)
+        sidebar.classList.add('shake-error');
+        document.getElementById('ares-speech').innerHTML = "🚨 <strong>¡ALERTA BALÍSTICA!</strong> La nave no ha entrado en la órbita circular. Revisa los mandos: la aguja de dirección debe marcar <span class='text-ares-gold font-bold'>45°</span> y la velocidad debe ser <span class='text-ares-laser font-bold'>70 km/s</span>.";
+        setTimeout(() => sidebar.classList.remove('shake-error'), 450);
+      }
+    }
+
+    // --- MONTAJE DINÁMICO DE LA INTERFAZ DEL SEGUNDO JUEGO SECUENCIAL ---
+    function setupSecondExerciseInterface() {
+      currentStage = 2;
+
+      // Actualizar títulos e indicadores superiores de estado
+      document.getElementById('sub-title-text').innerText = "EJERCICIO 2: BALANCE DE GRAVEDAD DEL SOL Y EMPUJE DE MOTORES";
+      document.getElementById('global-status').innerText = "FASE_2: BALANCE DE GRAVEDAD";
+      document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-ares-laser animate-pulse";
+
+      // Modificar instrucciones del dios Ares en pantalla
+      document.getElementById('ares-speech').innerHTML = "¡Excelente órbita, ingenieros! Pero ha surgido un problema imprevisto: <strong>La Gravedad del Sol</strong> está aumentando a <strong class='text-ares-gold'>6 G</strong> y tira de nosotros hacia el fuego. Cadetes, debéis configurar los <strong>Motores de Empuje a 60 kN</strong> para contrarrestar la fuerza exacta y mantener la distancia.";
+      document.getElementById('radar-log').innerHTML = "<i data-lucide='shield-alert' class='w-3.5 h-3.5 inline mr-1 text-ares-laser'></i> <strong>Ejercicio Secundario:</strong> Equilibra la fuerza del motor de la nave para que sea idéntica a la atracción gravitatoria del Sol.";
+
+      // Reconfigurar los deslizadores para adaptarlos a variables físicas de fuerzas (Gravedad vs Newtons)
+      document.getElementById('label-control-1').innerHTML = "<i data-lucide='sun' class='w-3.5 h-3.5 inline mr-1 text-ares-gold'></i> Gravedad del Sol (Atracción)";
+      const slider1 = document.getElementById('slider-control-1');
+      slider1.min = 1;
+      slider1.max = 10;
+      slider1.value = 2; // Valor por defecto desbalanceado
+      document.getElementById('footer-control-1').innerHTML = "<span>1 G (Débil)</span><span>6 G (Alerta Sol)</span><span>10 G (Extremo)</span>";
+
+      document.getElementById('label-control-2').innerHTML = "<i data-lucide='zap' class='w-3.5 h-3.5 inline mr-1 text-ares-laser'></i> Motores de la Nave (Empuje)";
+      const slider2 = document.getElementById('slider-control-2');
+      slider2.min = 10;
+      slider2.max = 100;
+      slider2.value = 20; // Valor por defecto desbalanceado
+      document.getElementById('footer-control-2').innerHTML = "<span>10 kN (Mínimo)</span><span>60 kN (Equilibrio)</span><span>100 kN (Máximo)</span>";
+
+      // Actualizar la apariencia del Radar cambiando el anillo central a la zona de peligro solar
+      document.getElementById('grid-ring-target').className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] border-2 border-ares-laser/30 rounded-full animate-pulse";
+      document.getElementById('ring-label-text').innerText = "LÍNEA DE EQUILIBRIO DE FUERZAS TÉRMICAS";
+      document.getElementById('ring-label-text').className = "absolute top-1 bg-stone-900 border border-ares-laser text-ares-laser font-mono text-[8px] px-1.5 rounded font-bold uppercase";
+      
+      // Transformar el icono de la nave para la fase de motores
+      document.getElementById('spacecraft-icon').setAttribute('data-lucide', 'shield-check');
+      document.getElementById('spacecraft-tag').innerText = "ESCUDO_NAVE";
+
+      // Reconfigurar datos del manual interno dinámico
+      document.getElementById('help-dynamic-content').innerHTML = "<p><strong>EJERCICIO SECUNDARIO:</strong> Para contrarrestar una gravedad de atracción solar intensa de <strong class='text-ares-gold'>6 G</strong>, los motores traseros de la nave deben calibrarse en un empuje de resistencia de <strong class='text-ares-laser'>60 kN</strong>.</p>";
+
+      // Recargar iconos cargados de Lucide y refrescar posiciones de los mandos deslizadores
+      lucide.createIcons();
+      executeTelemetryRealtime();
+    }
+
+    // --- EVALUACIÓN Y VALIDACIÓN DEL SEGUNDO EJERCICIO SECUENCIAL ---
+    function evaluateSecondExercise() {
+      const gravity = parseInt(document.getElementById('slider-control-1').value);
+      const thrusters = parseInt(document.getElementById('slider-control-2').value);
+      const sidebar = document.getElementById('control-sidebar');
+      const radar = document.getElementById('radar-viewport');
+
+      // Validación con sentido físico real: Se equilibra a la perfección a 6 G y 60 kN de empuje opuesto
+      if (gravity === 6 && thrusters === 60) {
+        
+        radar.classList.add('success-blink');
+        document.getElementById('progress-percentage-tag').innerText = '100%';
+        document.getElementById('global-status').innerText = 'MISIÓN COMPLETADA';
+
+        // Desplegar la pantalla de victoria final con el candado abriéndose exigido
+        setTimeout(() => {
+          document.getElementById('victory-screen').classList.remove('hidden');
+          
+          // Animación mecánica del candado de victoria abriéndose en pantalla
+          setTimeout(() => {
+            const lock = document.getElementById('lock-icon');
+            lock.setAttribute('data-lucide', 'lock-keyhole-open');
+            lucide.createIcons();
+            document.getElementById('giant-lock-box').firstElementChild.className = "w-20 h-20 bg-stone-900 border-2 border-ares-plasma rounded-2xl mx-auto flex items-center justify-center shadow-lg transform scale-110";
+          }, 350);
+
+        }, 1100);
+
+      } else {
+        // Efecto visual rojo de error con sacudida en el ejercicio secundario
+        sidebar.classList.add('shake-error');
+        document.getElementById('ares-speech').innerHTML = "🚨 <strong>¡ALERTA DE GRAVEDAD!</strong> Las fuerzas se encuentran descompensadas y la nave está cayendo hacia el Sol. Asegúrate de fijar la gravedad solar en <span class='text-ares-gold font-bold'>6 G</span> y los motores de empuje en <span class='text-ares-laser font-bold'>60 kN</span>.";
+        setTimeout(() => sidebar.classList.remove('shake-error'), 450);
+      }
+    }
+
+    // Controladores del manual flotante de ayuda
+    function openHelp() {
+      document.getElementById('help-modal').classList.remove('hidden');
+    }
+    function closeHelp() {
+      document.getElementById('help-modal').classList.add('hidden');
+    }
+
+    // Inicialización por defecto de la simulación al cargar la página en el navegador
+    window.onload = executeTelemetryRealtime;
+  </script>
+</body>
+</html>

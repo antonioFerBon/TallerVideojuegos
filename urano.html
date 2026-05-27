@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-amber-950">
+<head>
+  <meta charset="UTF-8">
+  <title>La Balanza del Cielo: El Manantial de la Biósfera</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            jupiter: {
+              space: '#0C0602',
+              storm: '#5C200E',
+              clay: '#A25023',
+              band: '#D1A16E',
+              cream: '#F4E3C1',
+              gold: '#F2B705',
+              zeus: '#00E5FF'
+            }
+          },
+          fontFamily: {
+            serif: ['Georgia', 'serif'],
+            sans: ['ui-sans-serif', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <style>
+    .jupiter-bg {
+      background: radial-gradient(circle at center, #361308 0%, #170702 60%, #060200 100%);
+    }
+    .jupiter-stripes {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(92, 32, 14, 0.05),
+        rgba(92, 32, 14, 0.05) 20px,
+        rgba(209, 161, 110, 0.05) 20px,
+        rgba(209, 161, 110, 0.05) 40px
+      );
+    }
+    
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+      40%, 60% { transform: translate3d(7px, 0, 0); }
+    }
+    .animate-shake {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+  </style>
+</head>
+<body class="h-full text-stone-100 overflow-hidden select-none jupiter-bg font-sans">
+  <div id="root" class="h-full jupiter-stripes"></div>
+
+  <script>
+    const { useState, useEffect, useRef } = React;
+    const e = React.createElement;
+
+    // Gases de la Fase 1
+    const GAS_ITEMS = [
+      { id: 'n2', name: 'Nitrógeno', type: 'vital', color: 'bg-sky-500 shadow-sky-500/50', ratio: 'Abundante (78%)', icon: '💧' },
+      { id: 'o2', name: 'Oxígeno', type: 'vital', color: 'bg-emerald-500 shadow-emerald-500/50', ratio: 'Moderado (21%)', icon: '🌱' },
+      { id: 'h2o_co2', name: 'Agua y Carbono', type: 'vital', color: 'bg-slate-200 shadow-slate-200/50 text-slate-900', ratio: 'Trazas Vitales', icon: '☁️' },
+      { id: 'ch4_nh3', name: 'Metano y Amoníaco', type: 'hostil', color: 'bg-purple-600 shadow-purple-600/50', ratio: 'Tóxico (Urano)', icon: '⚠️' }
+    ];
+
+    function ZeusEcosystemReto() {
+      // --- ESTADOS FASE 1 (Gases y Temperatura) ---
+      const [inventory, setInventory] = useState(GAS_ITEMS);
+      const [domeVitalGases, setDomeVitalGases] = useState([]);
+      const [temperature, setTemperature] = useState(-220);
+      const dialRef = useRef(null);
+
+      // --- ESTADOS FASE 2 (Albedo Dinámico con Restricción Física) ---
+      // La suma de los tres biomas debe dar siempre obligatoriamente 100%
+      const [surface, setSurface] = useState({
+        ice: 60,     // Albedo 0.85
+        forest: 15,  // Albedo 0.12
+        clouds: 25   // Albedo 0.50
+      });
+
+      // --- ESTADOS DE CONTROL GENERAL ---
+      const [gamePhase, setGamePhase] = useState('fase1'); 
+      const [systemState, setSystemState] = useState('active'); 
+      const [message, setMessage] = useState('Fase 1: Recrea la atmósfera. Introduce los viales gaseosos y ajusta el Dial Térmico.');
+
+      // --- MATEMÁTICAS CLIMÁTICAS REALES (Fase 2) ---
+      // 1. Cálculo real del Albedo ponderado
+      const currentAlbedo = Math.round(
+        (surface.ice * 0.85) + (surface.clouds * 0.50) + (surface.forest * 0.12)
+      );
+
+      // 2. Simulación de temperatura basada en el albedo (A menor albedo, más absorción de calor)
+      // Diana: Albedo 30% -> Temperatura ~15°C
+      const surfaceTemperature = Math.round(57 - (currentAlbedo * 1.4));
+
+      // Detector de gases venenosos en Fase 1
+      useEffect(() => {
+        if (gamePhase === 'fase1' && domeVitalGases.some(g => g.type === 'hostile')) {
+          triggerFailure('¡GAS VENENOSO! Urano corrompe el domo con Metano. El laboratorio se bloquea...');
+        }
+      }, [domeVitalGases]);
+
+      const triggerFailure = (reason) => {
+        setSystemState('error');
+        setMessage(reason);
+        setTimeout(() => {
+          if (gamePhase === 'fase1') {
+            setDomeVitalGases([]);
+            setInventory(GAS_ITEMS);
+            setTemperature(-220);
+          } else if (gamePhase === 'fase2') {
+            setSurface({ ice: 60, forest: 15, clouds: 25 });
+          }
+          setSystemState('active');
+          setMessage(gamePhase === 'fase1' ? 'Reactor purgado. Reintenta la mezcla de gases.' : 'Clima inestable detectado. Reajusta la proporción matemática.');
+        }, 3500);
+      };
+
+      // --- MANEJADOR DE SLIDERS CONECTADOS (Suma estricta del 100%) ---
+      const handleSurfaceChange = (key, value) => {
+        const newValue = parseInt(value) || 0;
+        const remainderKey1 = key === 'ice' ? 'forest' : 'ice';
+        const remainderKey2 = key === 'clouds' ? 'forest' : 'clouds';
+        
+        // Calcular cuánto espacio queda disponible
+        const currentOtherValuesSum = surface[remainderKey1] + surface[remainderKey2];
+        const targetOtherValuesSum = 100 - newValue;
+
+        let newSurface = { ...surface, [key]: newValue };
+
+        if (currentOtherValuesSum > 0) {
+          // Distribuir el cambio de forma proporcional entre los otros dos factores
+          const ratio1 = surface[remainderKey1] / currentOtherValuesSum;
+          const ratio2 = surface[remainderKey2] / currentOtherValuesSum;
+          
+          newSurface[remainderKey1] = Math.round(ratio1 * targetOtherValuesSum);
+          newSurface[remainderKey2] = 100 - newValue - newSurface[remainderKey1];
+        } else {
+          // Si los otros eran cero, dividir a partes iguales
+          newSurface[remainderKey1] = Math.floor(targetOtherValuesSum / 2);
+          newSurface[remainderKey2] = 100 - newValue - newSurface[remainderKey1];
+        }
+
+        setSurface(newSurface);
+      };
+
+      // --- INTERACCIONES FASE 1 ---
+      const handleDragStart = (ev, gas) => {
+        if (systemState !== 'active' || gamePhase !== 'fase1') return;
+        ev.dataTransfer.setData('text/plain', gas.id);
+      };
+
+      const handleDrop = (ev) => {
+        ev.preventDefault();
+        if (systemState !== 'active' || gamePhase !== 'fase1') return;
+        
+        const gasId = ev.dataTransfer.getData('text/plain');
+        const gas = inventory.find(g => g.id === gasId);
+        
+        if (gas) {
+          setDomeVitalGases([...domeVitalGases, gas]);
+          setInventory(inventory.filter(i => i.id !== gas.id));
+        }
+      };
+
+      const handleDialInteraction = (event) => {
+        if (systemState !== 'active' || gamePhase !== 'fase1' || !dialRef.current) return;
+        
+        const rect = dialRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+        const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+        
+        if (!clientX || !clientY) return;
+
+        const angleRad = Math.atan2(clientY - centerY, clientX - centerX);
+        let angleDeg = angleRad * (180 / Math.PI);
+        if (angleDeg < 0) angleDeg += 360;
+        
+        let calculatedTemp = Math.floor(((angleDeg % 360) / 360) * 300) - 220;
+        if (calculatedTemp < -220) calculatedTemp = -220;
+        if (calculatedTemp > 80) calculatedTemp = 80;
+        
+        setTemperature(calculatedTemp);
+      };
+
+      // --- EVALUACIONES ---
+      const evaluateFirstExercise = () => {
+        const hasAllVital = domeVitalGases.filter(g => g.type === 'vital').length === 3;
+        const isHabitableTemperature = temperature >= 10 && temperature <= 22;
+
+        if (hasAllVital && isHabitableTemperature) {
+          setGamePhase('transicion');
+          setMessage('¡Atmósfera química estabilizada! Entrando en el simulador de superficie planetaria.');
+        } else {
+          if (!hasAllVital) {
+            triggerFailure('¡Faltan compuestos! La combinación de gases no refleja el aire de la Tierra.');
+          } else {
+            triggerFailure(temperature < 10 ? '¡Frío extremo! Los viales se congelan.' : '¡Calor desértico! El reactor se sobrecalienta.');
+          }
+        }
+      };
+
+      const evaluateSecondExercise = () => {
+        // Criterio estricto de la Tierra: Albedo entre 29% y 31% y Temperatura entre 14°C y 16°C
+        const albedoValido = currentAlbedo >= 29 && currentAlbedo <= 32;
+        const tempValida = surfaceTemperature >= 14 && surfaceTemperature <= 16;
+
+        if (albedoValido && tempValida) {
+          setGamePhase('success');
+          setMessage('¡Perfecto! Has equilibrado la ecuación de balance térmico. Se manifiesta la Ofrenda.');
+        } else {
+          if (surfaceTemperature < 14) {
+            triggerFailure(`¡Error de glaciación! Albedo alto (${currentAlbedo}%). El planeta refleja demasiada energía y la temperatura cae a ${surfaceTemperature}°C.`);
+          } else {
+            triggerFailure(`¡Efecto Invernadero masivo! Albedo muy bajo (${currentAlbedo}%). El planeta absorbe demasiada radiación y sube a ${surfaceTemperature}°C.`);
+          }
+        }
+      };
+
+      return e('div', { className: 'w-full h-full flex flex-col justify-between p-4 md:p-6 relative' },
+        systemState === 'error' && e('div', { className: 'absolute inset-0 bg-red-600/10 mix-blend-overlay z-40 pointer-events-none' }),
+        gamePhase === 'success' && e('div', { className: 'absolute inset-0 bg-emerald-500/10 mix-blend-color-dodge z-30 pointer-events-none' }),
+
+        // CABECERA
+        e('header', { className: 'w-full border-b-2 border-jupiter-clay/40 pb-3 flex justify-between items-center bg-jupiter-space/90 backdrop-blur-md px-4 rounded-xl shadow-lg border-t-2 border-jupiter-gold/30 z-10' },
+          e('div', { className: 'flex items-center gap-4' },
+            e('div', { className: 'p-2 bg-gradient-to-br from-jupiter-storm to-jupiter-clay border border-jupiter-gold rounded-lg text-jupiter-gold text-xl' }, '🪐'),
+            e('div', {},
+              e('h1', { className: 'text-lg md:text-2xl font-serif font-extrabold text-jupiter-cream tracking-wider uppercase' },
+                gamePhase === 'fase2' ? 'Fase 2: Simulación Térmica de Superficie' : 'Fase 1: La Probeta del AIRE'
+              ),
+              e('p', { className: 'text-xs text-jupiter-band font-medium' }, 
+                gamePhase === 'fase2' ? 'Distribuye el 100% del terreno para equilibrar Albedo y Temperatura' : 'Equilibra los componentes gaseosos y la temperatura de la Tierra'
+              )
+            )
+          ),
+          e('div', { className: 'hidden md:block font-mono text-xs text-jupiter-cream bg-jupiter-storm/40 border border-jupiter-clay/60 px-3 py-1.5 rounded-lg' }, 
+            gamePhase === 'fase2' ? '📐 RESTRICCION_MATRICIAL_100%' : '📍 MODULO_QUIMICO_ON'
+          )
+        ),
+
+        // --- PANTALLA INTERMEDIA DE TRANSICIÓN ---
+        gamePhase === 'transicion' && e('div', { className: 'flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto z-20' },
+          e('div', { className: 'w-16 h-16 bg-jupiter-zeus text-jupiter-space rounded-full flex items-center justify-center text-2xl mb-4' }, '🚀'),
+          e('h2', { className: 'text-xl font-serif font-black text-jupiter-cream uppercase mb-2' }, '¡Fase 1 Completada!'),
+          e('p', { className: 'text-xs text-jupiter-band mb-6 font-mono' }, 'Gases dominados. Siguiente reto de Urano: Modificar la corteza. Recuerda que la superficie del planeta es limitada (la suma de cubiertas siempre debe dar exactamente el 100%). Busca el equilibrio térmico.'),
+          e('button', {
+            onClick: () => {
+              setGamePhase('fase2');
+              setMessage('Fase 2: Consigue un Albedo de ~30% y una temperatura estable de 15°C distribuyendo el terreno.');
+            },
+            className: 'px-6 py-3 bg-jupiter-gold text-jupiter-space font-mono font-black rounded-xl text-xs uppercase shadow-lg hover:scale-105 transition-transform'
+          }, 'Iniciar Simulación de Superficie')
+        ),
+
+        // --- INTERFAZ DEL JUEGO ---
+        (gamePhase === 'fase1' || gamePhase === 'fase2' || gamePhase === 'success') && e('main', { className: 'grid grid-cols-1 lg:grid-cols-12 gap-6 my-auto items-stretch w-full max-w-7xl mx-auto flex-1 py-4 overflow-hidden z-10' },
+          
+          // PANEL IZQUIERDO: CONTROLES / DATOS
+          e('section', { className: 'lg:col-span-4 flex flex-col justify-between gap-4 bg-jupiter-space/90 border border-jupiter-clay/30 rounded-2xl p-4 shadow-xl' },
+            e('div', { className: 'space-y-2' },
+              e('div', { className: 'flex items-center gap-2 border-b border-jupiter-clay/20 pb-1.5 text-jupiter-gold font-bold text-xs uppercase font-mono tracking-widest' }, 'ℹ️ Leyes de la Física'),
+              e('div', { className: 'text-xs text-jupiter-band leading-relaxed bg-black/40 p-3 rounded-xl border border-jupiter-storm/60' },
+                gamePhase === 'fase1'
+                  ? e('p', {}, 'La Tierra necesita un 78% de Nitrógeno, 21% de Oxígeno y trazas de vapor/CO2. Arrastra los viales al domo.')
+                  : e('p', {}, 'Los tres valores están interconectados y sumados dan siempre el 100%. Busca la combinación exacta que genere un ', e('span', { className: 'text-emerald-400 font-bold' }, 'Albedo de ~30%'), ' y una temperatura global de ', e('span', { className: 'text-jupiter-zeus font-bold' }, '15°C'), '.')
+              )
+            ),
+
+            // Contenido Variable según Ejercicio
+            gamePhase === 'fase1' ? 
+              e('div', { className: 'mt-2' },
+                e('h3', { className: 'text-[11px] font-mono font-bold uppercase tracking-wider text-jupiter-gold mb-2' }, '🧪 Rack de Laboratorio'),
+                e('div', { className: 'grid grid-cols-2 gap-3' },
+                  inventory.map(gas => 
+                    e('div', {
+                      key: gas.id,
+                      draggable: systemState === 'active',
+                      onDragStart: (ev) => handleDragStart(ev, gas),
+                      className: 'p-3 bg-gradient-to-b from-stone-900 to-stone-950 border-2 border-jupiter-clay/40 rounded-xl flex flex-col items-center justify-between text-center cursor-grab active:cursor-grabbing hover:border-jupiter-gold transition-all'
+                    },
+                      e('div', { className: 'w-7 h-11 rounded-t-full rounded-b-md ' + gas.color + ' flex items-center justify-center text-sm' }, gas.icon),
+                      e('p', { className: 'text-xs font-bold text-jupiter-cream mt-1 truncate w-full' }, gas.name),
+                      e('span', { className: 'text-[9px] font-mono text-jupiter-band' }, gas.ratio)
+                    )
+                  )
+                )
+              )
+            : // Deslizadores Conectados de la Fase 2
+              e('div', { className: 'space-y-4 bg-black/30 p-3 rounded-xl border border-jupiter-clay/20' },
+                e('div', { className: 'text-center text-[10px] font-mono text-jupiter-gold mb-2 border-b border-stone-800 pb-1' }, '📊 Matriz de Superficie Planetaria (Total: 100%)'),
+                e('div', {},
+                  e('div', { className: 'flex justify-between text-xs font-mono text-sky-300 font-bold mb-1' }, e('span', {}, '❄️ Glaciares/Hielo (Reflectivo)'), e('span', {}, surface.ice + '%')),
+                  e('input', { type: 'range', min: '0', max: '100', value: surface.ice, onChange: (ev) => handleSurfaceChange('ice', ev.target.value), className: 'w-full accent-sky-400 cursor-pointer h-1 bg-stone-800 rounded' })
+                ),
+                e('div', {},
+                  e('div', { className: 'flex justify-between text-xs font-mono text-emerald-400 font-bold mb-1' }, e('span', {}, '🌲 Capa Vegetal/Bosques (Absorbente)'), e('span', {}, surface.forest + '%')),
+                  e('input', { type: 'range', min: '0', max: '100', value: surface.forest, onChange: (ev) => handleSurfaceChange('forest', ev.target.value), className: 'w-full accent-emerald-500 cursor-pointer h-1 bg-stone-800 rounded' })
+                ),
+                e('div', {},
+                  e('div', { className: 'flex justify-between text-xs font-mono text-slate-300 font-bold mb-1' }, e('span', {}, '☁️ Condensación/Nubes (Dispersor)'), e('span', {}, surface.clouds + '%')),
+                  e('input', { type: 'range', min: '0', max: '100', value: surface.clouds, onChange: (ev) => handleSurfaceChange('clouds', ev.target.value), className: 'w-full accent-slate-400 cursor-pointer h-1 bg-stone-800 rounded' })
+                )
+              )
+          ),
+
+          // PANEL CENTRAL: VISUALIZADOR REVOLUCIONARIO
+          e('section', { className: 'lg:col-span-5 flex flex-col justify-between bg-gradient-to-b from-jupiter-space to-black border-2 rounded-3xl p-4 shadow-2xl relative ' + (systemState === 'error' ? 'border-red-500 animate-shake' : 'border-jupiter-clay/40') },
+            e('div', { className: 'relative flex-1 min-h-[300px] bg-stone-950/80 rounded-2xl border border-jupiter-storm/60 flex flex-col items-center justify-center p-4 overflow-hidden' },
+              
+              // ESCENARIO VISUAL FASE 1: El laboratorio químico
+              (gamePhase === 'fase1') && e('div', { className: 'w-full h-full grid grid-cols-2 gap-2 relative z-10' },
+                e('div', { className: 'flex flex-col justify-between p-2 opacity-40 text-center' },
+                  e('span', { className: 'text-[9px] font-mono text-purple-400 font-bold block uppercase' }, 'Filtro Exterior'),
+                  e('div', { className: 'w-10 h-10 rounded-full bg-purple-900 mx-auto flex items-center justify-center text-lg' }, '💨'),
+                  e('p', { className: 'text-[9px] font-mono text-purple-300' }, 'Metano de Urano')
+                ),
+                e('div', {
+                  onDragOver: (ev) => ev.preventDefault(),
+                  onDrop: handleDrop,
+                  className: 'flex flex-col justify-between p-2 rounded-xl border-2 border-dashed border-stone-800 transition-colors hover:border-jupiter-zeus'
+                },
+                  e('span', { className: 'text-[9px] font-mono text-jupiter-zeus font-bold block text-center uppercase' }, 'Tu Domo'),
+                  e('div', { className: 'flex flex-wrap justify-center gap-1 my-auto' },
+                    domeVitalGases.map(gas => 
+                      e('div', { key: gas.id, className: 'px-2 py-0.5 rounded bg-stone-900 border border-white/10 text-[10px] text-white flex items-center gap-1 shadow' }, 
+                        e('span', {}, gas.icon), gas.name
+                      )
+                    ),
+                    domeVitalGases.length === 0 && e('p', { className: 'text-[9px] text-stone-600 text-center italic font-mono' }, 'Suelta los compuestos aquí')
+                  )
+                )
+              ),
+
+              // ESCENARIO VISUAL FASE 2: El Planeta cambia de color en tiempo real según los sliders
+              (gamePhase === 'fase2' || gamePhase === 'success') && e('div', { className: 'w-full h-full flex flex-col items-center justify-center text-center relative z-10 p-2' },
+                e('div', { 
+                  className: 'w-32 h-32 rounded-full border-2 border-white/20 shadow-2xl relative overflow-hidden transition-all duration-300',
+                  style: {
+                    background: `radial-gradient(circle at center, #0284c7 0%, #065f46 ${surface.forest}%, #cbd5e1 ${surface.ice}%)`
+                  }
+                },
+                  e('div', { 
+                    className: 'absolute inset-0 bg-white/50 mix-blend-color-dodge transition-opacity duration-300',
+                    style: { opacity: surface.clouds / 100 }
+                  })
+                ),
+                e('p', { className: 'text-[11px] font-mono text-jupiter-cream mt-3' }, 'Simulador Órbita Biósfera'),
+                gamePhase === 'success' && e('div', { className: 'absolute inset-0 bg-emerald-950/80 z-20 flex items-center justify-center text-4xl' }, '🌲')
+              ),
+
+              // RECOMPENSA FINAL: Ofrenda de la Lágrima de Gaia
+              gamePhase === 'success' && e('div', {
+                onClick: () => setGamePhase('finished'),
+                className: 'absolute z-30 flex flex-col items-center cursor-pointer transform hover:scale-105 transition-transform'
+              },
+                e('div', { className: 'w-12 h-16 bg-gradient-to-b from-cyan-200 to-emerald-400 rounded-full border-2 border-white shadow-[0_0_30px_rgba(0,229,255,0.9)] flex items-center justify-center text-xl animate-bounce' }, '💎'),
+                e('span', { className: 'text-[9px] font-mono font-bold bg-black border border-jupiter-zeus px-2 py-0.5 rounded mt-2 text-jupiter-zeus' }, 'Reclamar Ofrenda')
+              )
+            ),
+            e('div', { className: 'w-full mt-3 bg-jupiter-space border border-jupiter-clay/40 rounded-xl p-2.5 text-center min-h-[40px] flex items-center justify-center' },
+              e('p', { className: 'text-xs font-mono text-jupiter-cream tracking-wide' }, message)
+            )
+          ),
+
+          // PANEL DERECHO: HERRAMIENTAS DE MEDICIÓN
+          e('section', { className: 'lg:col-span-3 flex flex-col justify-between bg-jupiter-space/90 border border-jupiter-clay/30 rounded-2xl p-4 shadow-xl' },
+            
+            // Medidor Fase 1: Dial de Temperatura
+            gamePhase === 'fase1' ?
+              e('div', { className: 'flex-1 flex flex-col justify-between' },
+                e('div', {},
+                  e('div', { className: 'flex items-center gap-1.5 border-b border-jupiter-clay/20 pb-1 text-jupiter-gold font-bold text-xs uppercase font-mono' }, '🌡️ Dial de Bronce'),
+                  e('p', { className: 'text-[10px] text-jupiter-band mt-1' }, 'Busca la franja templada terrestre (15°C).')
+                ),
+                e('div', { className: 'my-2 flex flex-col items-center justify-center' },
+                  e('div', {
+                    ref: dialRef,
+                    onMouseDown: handleDialInteraction,
+                    onMouseMove: (ev) => ev.buttons === 1 && handleDialInteraction(ev),
+                    onTouchMove: handleDialInteraction,
+                    className: 'w-24 h-24 rounded-full bg-gradient-to-br from-jupiter-clay to-black border-2 border-jupiter-gold shadow relative flex items-center justify-center cursor-pointer'
+                  },
+                    e('div', { className: 'absolute top-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-white z-10' }),
+                    e('div', {
+                      className: 'w-0.5 h-9 bg-jupiter-gold absolute',
+                      style: {
+                        bottom: '50%',
+                        transform: 'rotate(' + (((temperature + 220) / 300) * 270 - 135) + 'deg)',
+                        transformOrigin: 'bottom center'
+                      }
+                    })
+                  ),
+                  e('div', { className: 'mt-2 bg-black/40 px-3 py-1 rounded border border-jupiter-storm font-mono text-xs text-center font-bold text-jupiter-gold' }, temperature + ' °C')
+                )
+              )
+            : // Medidor Fase 2: Telemetría Doble (Albedo + Temperatura de Superficie Simulada)
+              e('div', { className: 'flex-1 flex flex-col gap-4 justify-center' },
+                e('div', {},
+                  e('div', { className: 'flex items-center gap-1.5 border-b border-jupiter-clay/20 pb-1 text-jupiter-zeus font-bold text-xs uppercase font-mono' }, '📊 Telemetría Térmica'),
+                  e('p', { className: 'text-[10px] text-jupiter-band mt-1' }, 'Los sensores calculan el balance radiativo de la corteza.')
+                ),
+                
+                // Monitor Albedo
+                e('div', { className: 'bg-black/60 border border-jupiter-storm rounded-xl p-2.5 text-center font-mono shadow-inner' },
+                  e('span', { className: 'block text-[9px] uppercase text-jupiter-band' }, 'Albedo Calculado'),
+                  e('span', { className: 'text-xl font-black ' + (currentAlbedo >= 29 && currentAlbedo <= 32 ? 'text-emerald-400 animate-pulse' : 'text-amber-500') }, currentAlbedo + ' %'),
+                  e('span', { className: 'block text-[8px] text-stone-600 mt-0.5' }, 'Objetivo Tierra: ~30%')
+                ),
+
+                // Monitor Temperatura Simulada
+                e('div', { className: 'bg-black/60 border border-jupiter-storm rounded-xl p-2.5 text-center font-mono shadow-inner' },
+                  e('span', { className: 'block text-[9px] uppercase text-jupiter-band' }, 'Temperatura Superficie'),
+                  e('span', { className: 'text-xl font-black ' + (surfaceTemperature >= 14 && surfaceTemperature <= 16 ? 'text-emerald-400' : 'text-amber-500') }, surfaceTemperature + ' °C'),
+                  e('span', { className: 'block text-[8px] text-stone-600 mt-0.5' }, 'Objetivo Tierra: 15°C')
+                )
+              ),
+
+            // Botón de Envío / Comprobación
+            e('button', {
+              disabled: systemState !== 'active' || gamePhase === 'success',
+              onClick: gamePhase === 'fase1' ? evaluateFirstExercise : evaluateSecondExercise,
+              className: 'w-full py-2.5 rounded-xl font-mono text-xs font-black uppercase border-b-4 active:translate-y-0.5 transition-all ' + 
+                (gamePhase === 'fase2' ? 'bg-gradient-to-r from-jupiter-storm via-jupiter-clay to-jupiter-storm text-white border-amber-950' : 'bg-gradient-to-r from-jupiter-clay via-jupiter-gold to-jupiter-clay text-jupiter-space border-amber-800')
+            }, gamePhase === 'fase2' ? 'Verificar Balance' : 'Validar Gases')
+          )
+        ),
+
+        // PANTALLA DE RECOMPENSA Y CIERRE FINAL
+        gamePhase === 'finished' && e('div', { className: 'absolute inset-0 z-50 bg-jupiter-space/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center' },
+          e('div', { className: 'max-w-md bg-gradient-to-b from-stone-900 to-jupiter-space p-8 rounded-3xl border-2 border-jupiter-gold shadow-2xl flex flex-col items-center' },
+            e('div', { className: 'w-14 h-14 bg-jupiter-gold rounded-xl flex items-center justify-center text-jupiter-space text-2xl mb-4' }, '🔓'),
+            e('h2', { className: 'text-xl font-serif font-black tracking-wider text-jupiter-cream uppercase mb-2' }, 'Ofrenda Entregada'),
+            e('p', { className: 'text-xs text-jupiter-band mb-6 font-mono' }, 'Urano capitula ante tu precisión matemática. Has equilibrado las masas de aire, los rangos térmicos y la interconexión de biomas de la corteza sólida.'),
+            e('div', { className: 'w-full p-3 bg-black/60 rounded-xl border border-jupiter-clay/30 mb-6 font-mono text-left text-xs' },
+              e('p', { className: 'text-[9px] text-jupiter-zeus uppercase font-bold' }, 'Código Alumno Completado:'),
+              e('p', { className: 'text-white font-bold tracking-widest text-center mt-1' }, 'GAIA_MATH_RESONANCE_2026')
+            ),
+            e('button', {
+              onClick: () => {
+                setDomeVitalGases([]);
+                setInventory(GAS_ITEMS);
+                setTemperature(-220);
+                setSurface({ ice: 60, forest: 15, clouds: 25 });
+                setGamePhase('fase1');
+                setSystemState('active');
+                setMessage('Fase 1: Recrea la atmósfera. Introduce los viales gaseosos y ajusta el Dial Térmico.');
+              },
+              className: 'w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-jupiter-zeus text-jupiter-space font-black font-mono uppercase rounded-xl text-xs transform active:scale-95'
+            }, 'Reiniciar Desafío Completo')
+          )
+        ),
+
+        e('footer', { className: 'w-full text-center py-1 text-[9px] text-jupiter-clay font-mono font-bold tracking-widest z-10 uppercase' }, 'Simulador de Balance de Energía // Ciencias Planetarias 2026')
+      );
+    }
+
+    // Montaje directo en raíz
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(e(ZeusEcosystemReto));
+  </script>
+</body>
+</html>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <title>Arpa Gravitatoria de Cronos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cronos: {
+              gold: '#F4E3B1',
+              ring: '#4A3B2C',
+              neon: '#00FFE0',
+              accent: '#C4A47A',
+              bgDark: '#0D0B14'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .space-grid {
+      background-size: 40px 40px;
+      background-image: linear-gradient(to right, rgba(196, 164, 122, 0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(196, 164, 122, 0.03) 1px, transparent 1px);
+    }
+    .orbit-zone {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .orbit-zone-active {
+      border-color: #00FFE0 !important;
+      background-color: rgba(0, 255, 224, 0.05) !important;
+      box-shadow: 0 0 25px rgba(0, 255, 224, 0.2);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #F4E3B1;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(244, 227, 177, 0.8);
+    }
+    body { scrollbar-width: none; }
+    body::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="h-full text-slate-200 overflow-hidden select-none space-grid bg-[#09070F]">
+
+  <div id="error-screen" class="hidden fixed inset-0 bg-red-950/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center font-mono">
+    <div class="text-center animate-pulse mb-4 text-red-500">
+      <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    </div>
+    <h2 class="text-lg font-black text-white tracking-widest uppercase">DISONANCIA DE MASA DETECTADA</h2>
+    <p id="error-text" class="text-xs text-red-400 mt-2 max-w-xs text-center px-4">El centro de gravedad ha colapsado debido a una distribución inestable. Reiniciando órbitas...</p>
+  </div>
+
+  <div class="h-full w-full flex flex-col justify-between p-4 md:p-6 max-w-7xl mx-auto">
+    
+    <header class="w-full flex justify-between items-center border-b border-cronos-accent/10 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_#F4E3B1]"></div>
+        <div>
+          <h1 class="text-sm md:text-base font-black tracking-widest uppercase font-mono text-cronos-gold">
+            Arpa Gravitatoria de Cronos <span id="phase-title" class="text-cronos-accent text-xs ml-2">[Fase Órbita]</span>
+          </h1>
+          <p id="instruction" class="text-[11px] text-slate-400 font-mono">Equilibra las masas de los anillos para sintetizar el Hielo Primordial.</p>
+        </div>
+      </div>
+      
+      <button id="help-btn" class="bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-cronos-accent px-4 py-1.5 rounded-xl font-mono text-[11px] font-bold text-cronos-gold shadow-md transition-all flex items-center gap-2">
+        ❓ Manual de Diagnóstico
+      </button>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-auto items-stretch flex-1 py-4 overflow-hidden">
+      
+      <section class="lg:col-span-8 bg-slate-950/40 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+        
+        <div class="relative flex-1 min-h-[380px] rounded-xl bg-[#050408] border border-slate-900 overflow-hidden flex items-center justify-center">
+          
+          <div id="view-phase-1" class="absolute inset-0 flex items-center justify-center">
+            
+            <div class="absolute w-[440px] h-[160px] border border-cronos-accent/10 rounded-full rotate-[-12deg] pointer-events-none"></div>
+            <div class="absolute w-[380px] h-[130px] border border-cronos-accent/20 rounded-full rotate-[-12deg] pointer-events-none"></div>
+            <div class="absolute w-[320px] h-[100px] border border-cronos-accent/10 rounded-full rotate-[-12deg] pointer-events-none"></div>
+
+            <div data-target="externo" class="orbit-zone absolute left-8 bottom-16 w-24 h-24 rounded-full border border-dashed border-slate-700 bg-slate-950/20 flex flex-col items-center justify-center p-2 text-center">
+              <span class="text-[8px] text-slate-500 font-mono uppercase tracking-wider font-bold">Nodo Externo</span>
+              <span class="text-[7px] text-slate-600 font-mono mt-0.5">(Beta)</span>
+              <div class="w-full h-full flex items-center justify-center mt-1" id="slot-externo"></div>
+            </div>
+
+            <div data-target="medio" class="orbit-zone absolute left-1/2 -translate-x-1/2 bottom-8 w-24 h-24 rounded-full border border-dashed border-slate-700 bg-slate-950/20 flex flex-col items-center justify-center p-2 text-center">
+              <span class="text-[8px] text-slate-500 font-mono uppercase tracking-wider font-bold">Nodo Medio</span>
+              <span class="text-[7px] text-slate-600 font-mono mt-0.5">(Alpha)</span>
+              <div class="w-full h-full flex items-center justify-center mt-1" id="slot-medio"></div>
+            </div>
+
+            <div data-target="interno" class="orbit-zone absolute right-12 bottom-16 w-24 h-24 rounded-full border border-dashed border-slate-700 bg-slate-950/20 flex flex-col items-center justify-center p-2 text-center">
+              <span class="text-[8px] text-slate-500 font-mono uppercase tracking-wider font-bold">Nodo Interno</span>
+              <span class="text-[7px] text-slate-600 font-mono mt-0.5">(Gamma)</span>
+              <div class="w-full h-full flex items-center justify-center mt-1" id="slot-interno"></div>
+            </div>
+
+            <div class="absolute top-16 w-36 h-36 rounded-full bg-gradient-to-b from-[#A68966] via-[#6E563B] to-[#3D2E1E] shadow-[0_0_50px_rgba(110,86,59,0.4)] z-10 flex items-center justify-center pointer-events-none">
+              <div class="absolute inset-0 w-full h-full rounded-full bg-stripes opacity-20"></div>
+              <div class="w-56 h-4 bg-[#C4A47A]/40 rotate-[-12deg] rounded-full blur-[1px] shadow-[0_0_15px_rgba(196,164,122,0.2)]"></div>
+            </div>
+
+          </div>
+
+          <div id="view-phase-2" class="hidden absolute inset-0 flex items-center justify-center">
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+              <path id="wave-target" d="" fill="none" stroke="#4A3B2C" stroke-width="2" stroke-dasharray="5 5" />
+              <path id="wave-player" d="" fill="none" stroke="#F4E3B1" stroke-width="2" class="drop-shadow-[0_0_4px_rgba(244,227,177,0.5)]" />
+            </svg>
+          </div>
+
+          <button id="final-claim-btn" class="hidden absolute z-20 bg-gradient-to-r from-cronos-accent to-cronos-gold text-slate-950 px-5 py-2.5 rounded-xl font-mono text-xs font-black uppercase tracking-widest shadow-xl animate-bounce">
+            ⚡ Sintetizar Hielo Primordial
+          </button>
+        </div>
+
+        <div class="mt-4 p-4 bg-[#0D0B14] border border-slate-900 rounded-xl font-mono">
+          <p id="bank-title" class="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-3">⬡ Cinturón de Escombros Orbital (Objetos Disponibles)</p>
+          
+          <div id="moons-bank" class="flex justify-center gap-3 flex-wrap">
+            
+            <div id="moon-titan" draggable="true" data-moon="titan" class="bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab active:cursor-grabbing transition-all min-w-[100px]">
+              <div class="text-xs font-bold text-cronos-gold flex items-center justify-center gap-1">🔸 Titán</div>
+              <div class="mt-1.5 px-2 py-0.5 bg-black/60 rounded text-[9px] text-amber-500/80 font-medium border border-amber-500/10">Masa: 50G</div>
+            </div>
+
+            <div id="moon-encelado" draggable="true" data-moon="encelado" class="bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab active:cursor-grabbing transition-all min-w-[100px]">
+              <div class="text-xs font-bold text-cronos-gold flex items-center justify-center gap-1">🔹 Encelado</div>
+              <div class="mt-1.5 px-2 py-0.5 bg-black/60 rounded text-[9px] text-amber-500/80 font-medium border border-amber-500/10">Masa: 30G</div>
+            </div>
+
+            <div id="moon-mimas" draggable="true" data-moon="mimas" class="bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab active:cursor-grabbing transition-all min-w-[100px]">
+              <div class="text-xs font-bold text-cronos-gold flex items-center justify-center gap-1">⬡ Mimas</div>
+              <div class="mt-1.5 px-2 py-0.5 bg-black/60 rounded text-[9px] text-amber-500/80 font-medium border border-amber-500/10">Masa: 10G</div>
+            </div>
+
+            <div id="moon-cometa" draggable="true" data-moon="cometa" class="bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab active:cursor-grabbing transition-all min-w-[100px]">
+              <div class="text-xs font-bold text-cronos-gold flex items-center justify-center gap-1">👁️ Cometa</div>
+              <div class="mt-1.5 px-2 py-0.5 bg-black/60 rounded text-[9px] text-amber-500/80 font-medium border border-amber-500/10">Masa: 20G</div>
+            </div>
+
+            <div id="moon-asteroide" draggable="true" data-moon="asteroide" class="bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab active:cursor-grabbing transition-all min-w-[100px]">
+              <div class="text-xs font-bold text-cronos-gold flex items-center justify-center gap-1">⬦ Asteroide</div>
+              <div class="mt-1.5 px-2 py-0.5 bg-black/60 rounded text-[9px] text-amber-500/80 font-medium border border-amber-500/10">Masa: 15G</div>
+            </div>
+
+          </div>
+
+          <div id="wave-controls" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 py-1">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Frecuencia de Oscilación</span>
+                <span id="txt-freq" class="text-cronos-gold font-bold">1.0 Hz</span>
+              </div>
+              <input id="slider-freq" type="range" min="1" max="10" value="1" step="0.1" class="w-full bg-slate-900 rounded-lg h-1 appearance-none cursor-pointer">
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Amplitud del Armónico</span>
+                <span id="txt-amp" class="text-cronos-gold font-bold">5%</span>
+              </div>
+              <input id="slider-amp" type="range" min="5" max="100" value="5" step="1" class="w-full bg-slate-900 rounded-lg h-1 appearance-none cursor-pointer">
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="lg:col-span-4 bg-[#0D0B14] border border-slate-900 rounded-2xl p-4 flex flex-col justify-between shadow-xl font-mono">
+        
+        <div class="space-y-4">
+          <div class="border-b border-slate-900 pb-2">
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">🔬 Módulo de Diagnóstico</p>
+            <h3 id="panel-subtitle" class="text-xs font-bold text-cronos-gold uppercase mt-1">Leyes de Kepler y Newton</h3>
+          </div>
+
+          <div id="intel-box" class="text-[11px] bg-black/40 border border-slate-900 p-3 rounded-xl leading-relaxed text-slate-400">
+            La gravedad depende directamente de la masa del objeto y de su distancia al foco emisor. Coloca los cuerpos celestes correctos en los armónicos correspondientes para iniciar la resonancia.
+          </div>
+
+          <div class="bg-black/30 p-3 rounded-xl border border-slate-900 text-center">
+            <span id="label-stat" class="block text-[9px] text-slate-500 uppercase font-bold tracking-wider">Resonancia Gravitatoria</span>
+            <span id="data-stat" class="text-xl font-black text-slate-600 mt-1 block">0%</span>
+          </div>
+        </div>
+
+        <div class="my-4 p-3 bg-black/40 border border-slate-900 rounded-xl text-[10px] text-slate-400 space-y-2">
+          <p class="text-cronos-gold font-bold uppercase text-[9px] tracking-wider">Telemetry Logs:</p>
+          <p id="log-1">• Estado de red: <span class="text-emerald-500">ORBITAL_STABLE</span></p>
+          <p id="log-2">• Cuerpos en órbita no identificados generan distorsión de datos.</p>
+        </div>
+
+        <button id="action-btn" class="w-full py-3.5 bg-gradient-to-r from-cronos-ring to-slate-900 hover:from-cronos-gold hover:to-cronos-accent border border-cronos-accent/20 hover:border-transparent text-cronos-gold hover:text-slate-950 font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md">
+          Evaluar Resonancia
+        </button>
+
+      </section>
+    </main>
+
+    <div id="modal-help" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+      <div class="max-w-md w-full bg-[#0D0B14] border border-slate-800 p-6 rounded-2xl shadow-2xl font-mono text-left">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-3 mb-4">
+          <h3 class="text-xs font-black text-cronos-gold uppercase tracking-widest flex items-center gap-2">
+            🛰️ Manual de Mecánica de Sistemas
+          </h3>
+          <button id="close-help-btn" class="text-slate-500 hover:text-white text-sm">✕</button>
+        </div>
+        
+        <div id="help-content" class="text-[11px] text-slate-300 space-y-3 leading-relaxed">
+          </div>
+
+        <button id="close-help-btn-bottom" class="w-full mt-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs font-bold uppercase rounded-xl transition-all">
+          Cerrar Diagnóstico
+        </button>
+      </div>
+    </div>
+
+    <div id="modal-reward" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+      <div class="max-w-md bg-[#0D0B14] p-8 rounded-2xl border border-cronos-gold shadow-2xl flex flex-col items-center">
+        <h2 class="text-lg font-mono font-black text-cronos-gold tracking-widest uppercase mb-2">Síntesis Concluida</h2>
+        <p class="text-xs font-mono text-slate-400 mb-6">
+          Los armónicos de masa se han acoplado perfectamente con los carriles estables del arpa planetaria. El Hielo Primordial se ha condensado.
+        </p>
+        <button onclick="window.location.reload()" class="w-full py-3 bg-cronos-gold hover:bg-white text-slate-950 font-black font-mono tracking-widest text-xs uppercase rounded-xl transition-all">
+          Reiniciar Arpa
+        </button>
+      </div>
+    </div>
+
+    <footer class="w-full text-center py-1 text-[9px] text-slate-600 font-mono tracking-wider">
+      SISTEMA INTERACTIVO CRONOS // ACADEMIA DE CIENCIAS DE LA TIERRA 2026
+    </footer>
+  </div>
+
+  <script>
+    let currentPhase = 1;
+    let isLocked = false;
+
+    // Estado Fase 1 (Soporta las 5 lunas)
+    let placements = { titan: null, encelado: null, mimas: null, cometa: null, asteroide: null };
+    
+    // Solución real científica según distancia/órbitas reales de Saturno de las lunas válidas
+    const correctPlacements = { mimas: 'interno', encelado: 'medio', titan: 'externo' };
+
+    // Estado Fase 2 (Ondas)
+    let playerFreq = 1.0;
+    let playerAmp = 5;
+    const targetFreq = 6.4; 
+    const targetAmp = 75;  
+
+    // Nodos
+    const viewPhase1 = document.getElementById('view-phase-1');
+    const viewPhase2 = document.getElementById('view-phase-2');
+    const moonsBank = document.getElementById('moons-bank');
+    const waveControls = document.getElementById('wave-controls');
+    const sliderFreq = document.getElementById('slider-freq');
+    const sliderAmp = document.getElementById('slider-amp');
+    const txtFreq = document.getElementById('txt-freq');
+    const txtAmp = document.getElementById('txt-amp');
+    const waveTarget = document.getElementById('wave-target');
+    const wavePlayer = document.getElementById('wave-player');
+
+    const actionBtn = document.getElementById('action-btn');
+    const finalClaimBtn = document.getElementById('final-claim-btn');
+    const errorScreen = document.getElementById('error-screen');
+    const errorText = document.getElementById('error-text');
+    const modalReward = document.getElementById('modal-reward');
+    const modalHelp = document.getElementById('modal-help');
+    const helpBtn = document.getElementById('help-btn');
+    const helpContent = document.getElementById('help-content');
+
+    const phaseTitle = document.getElementById('phase-title');
+    const instruction = document.getElementById('instruction');
+    const panelSubtitle = document.getElementById('panel-subtitle');
+    const intelBox = document.getElementById('intel-box');
+    const dataStat = document.getElementById('data-stat');
+    const labelStat = document.getElementById('label-stat');
+
+    // Drag and Drop
+    const items = document.querySelectorAll('[data-moon]');
+    const zones = document.querySelectorAll('[data-target]');
+
+    items.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        if (isLocked) return;
+        e.dataTransfer.setData('text/plain', e.target.dataset.moon);
+      });
+    });
+
+    zones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!isLocked) zone.classList.add('orbit-zone-active');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('orbit-zone-active');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('orbit-zone-active');
+        if (isLocked) return;
+
+        const moonId = e.dataTransfer.getData('text/plain');
+        const targetNode = zone.dataset.target;
+
+        for (let key in placements) {
+          if (placements[key] === targetNode) placements[key] = null;
+        }
+
+        placements[moonId] = targetNode;
+
+        const movedMoon = document.getElementById(`moon-${moonId}`);
+        const slotDiv = document.getElementById(`slot-${targetNode}`);
+        slotDiv.appendChild(movedMoon);
+
+        movedMoon.className = "bg-black/90 border border-cronos-gold p-1 rounded text-[9px] font-bold text-cronos-gold text-center w-full shadow-lg";
+
+        // Actualizar visualizador de estado
+        let activeCount = Object.values(placements).filter(v => v !== null).length;
+        dataStat.innerText = `${activeCount} / 3`;
+        dataStat.className = "text-xl font-black text-cronos-gold";
+      });
+    });
+
+    // Ondas Mecánicas
+    function generateWavePath(freq, amp, width, height) {
+      let points = [];
+      const steps = 100;
+      const centerY = height / 2;
+      for (let i = 0; i <= steps; i++) {
+        let x = (i / steps) * width;
+        let angle = (i / steps) * Math.PI * 2 * freq;
+        let y = centerY + Math.sin(angle) * (amp * 1.5);
+        points.push(`${x},${y}`);
+      }
+      return `M ${points.join(' L ')}`;
+    }
+
+    function renderOscilloscope() {
+      const w = 650, h = 380;
+      waveTarget.setAttribute('d', generateWavePath(targetFreq, targetAmp, w, h));
+      wavePlayer.setAttribute('d', generateWavePath(playerFreq, playerAmp, w, h));
+
+      if (currentPhase === 2) {
+        let diffFreq = Math.abs(playerFreq - targetFreq) / targetFreq;
+        let diffAmp = Math.abs(playerAmp - targetAmp) / targetAmp;
+        let accuracy = Math.max(0, 100 - (diffFreq * 60 + diffAmp * 40));
+
+        dataStat.innerText = `${Math.round(accuracy)}%`;
+        if (accuracy >= 95) {
+          dataStat.className = "text-xl font-black text-emerald-400";
+        } else {
+          dataStat.className = "text-xl font-black text-cronos-gold";
+        }
+      }
+    }
+
+    sliderFreq.addEventListener('input', (e) => {
+      playerFreq = parseFloat(e.target.value);
+      txtFreq.innerText = `${playerFreq.toFixed(1)} Hz`;
+      renderOscilloscope();
+    });
+
+    sliderAmp.addEventListener('input', (e) => {
+      playerAmp = parseInt(e.target.value);
+      txtAmp.innerText = `${playerAmp}%`;
+      renderOscilloscope();
+    });
+
+    // Acción / Validación
+    actionBtn.addEventListener('click', () => {
+      if (isLocked) return;
+
+      if (currentPhase === 1) {
+        let isCorrect = true;
+        for (let moon in correctPlacements) {
+          if (placements[moon] !== correctPlacements[moon]) isCorrect = false;
+        }
+        if (placements.cometa !== null || placements.asteroide !== null) isCorrect = false;
+
+        if (isCorrect) {
+          isLocked = true;
+          actionBtn.innerText = "✓ ACOPLAMIENTO COMPLETADO";
+          actionBtn.className = "w-full py-3.5 bg-emerald-950 border border-emerald-500/30 text-emerald-400 font-bold text-xs uppercase tracking-widest rounded-xl";
+          setTimeout(() => { initPhase2(); }, 1200);
+        } else {
+          triggerFailure("Las lunas situadas rompen el vector de equilibrio. Las masas no corresponden a sus órbitas de resonancia.");
+        }
+      } else {
+        let diffFreq = Math.abs(playerFreq - targetFreq) / targetFreq;
+        let diffAmp = Math.abs(playerAmp - targetAmp) / targetAmp;
+        let accuracy = Math.max(0, 100 - (diffFreq * 60 + diffAmp * 40));
+
+        if (accuracy >= 95) {
+          isLocked = true;
+          actionBtn.classList.add('hidden');
+          finalClaimBtn.classList.remove('hidden');
+        } else {
+          triggerFailure("La modulación armónica actual genera interferencia destructiva.");
+        }
+      }
+    });
+
+    function triggerFailure(message) {
+      isLocked = true;
+      errorText.innerText = message;
+      errorScreen.classList.remove('hidden');
+
+      setTimeout(() => {
+        errorScreen.classList.add('hidden');
+        isLocked = false;
+
+        if (currentPhase === 1) {
+          items.forEach(item => {
+            moonsBank.appendChild(item);
+            item.className = "bg-[#14121F] border border-slate-800 hover:border-cronos-accent p-2 rounded-xl text-center cursor-grab min-w-[100px]";
+          });
+          placements = { titan: null, encelado: null, mimas: null, cometa: null, asteroide: null };
+          dataStat.innerText = "0 / 3";
+        } else {
+          playerFreq = 1.0; playerAmp = 5;
+          sliderFreq.value = 1.0; sliderAmp.value = 5;
+          txtFreq.innerText = "1.0 Hz"; txtAmp.innerText = "5%";
+          renderOscilloscope();
+        }
+      }, 2500);
+    }
+
+    function initPhase2() {
+      currentPhase = 2;
+      isLocked = false;
+
+      viewPhase1.classList.add('hidden');
+      viewPhase2.classList.remove('hidden');
+      moonsBank.classList.add('hidden');
+      document.getElementById('bank-title').classList.add('hidden');
+      waveControls.classList.remove('hidden');
+
+      phaseTitle.innerText = "[Fase Resonancia]";
+      instruction.innerText = "Modula los diales de energía armónica hasta superponer el espectro de ondas.";
+      panelSubtitle.innerText = "Modulador de Frecuencia";
+      intelBox.innerHTML = `🌌 <strong>Sintonía de Fase:</strong> Las oscilaciones del campo deben emparejarse con el patrón latente del planeta para consolidar el núcleo del Hielo Primordial.`;
+      
+      labelStat.innerText = "Precisión de la Señal";
+      dataStat.innerText = "0%";
+      
+      actionBtn.innerText = "Fijar Patrón Armónico";
+      actionBtn.className = "w-full py-3.5 bg-gradient-to-r from-cronos-ring to-slate-900 hover:from-cronos-gold hover:to-cronos-accent border border-cronos-accent/20 text-cronos-gold font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md";
+      
+      renderOscilloscope();
+    }
+
+    // MANUAL DE AYUDA (MÉTODO PEDAGÓGICO SIN SOLUCIONES DIRECTAS)
+    helpBtn.addEventListener('click', () => {
+      if (currentPhase === 1) {
+        helpContent.innerHTML = `
+          <p class="font-bold text-cronos-gold uppercase mb-1">📐 Análisis de Fuerzas Centrales (Fase 1)</p>
+          <p>Para resolver la estabilidad planetaria sin provocar anomalías, recuerda los principios universales de la astrofísica:</p>
+          <ul class="list-disc list-inside space-y-2 mt-2 text-slate-400">
+            <li><strong>Relación Masa-Inercia:</strong> Los cuerpos celestes con mayor densidad y masa volumétrica requieren una cantidad descomunal de momento angular y espacio energético, por lo que las fuerzas de marea del planeta tienden a confinarlos en los anillos y campos de influencia más remotos o externos.</li>
+            <li><strong>Límites de Marea:</strong> Las masas extremadamente pequeñas sufren menos perturbaciones por las fuerzas gravitacionales internas cercanas a los anillos principales de polvo, logrando mantener órbitas estables en regiones muy próximas a la superficie del gigante gaseoso sin desintegrarse.</li>
+            <li><strong>Residuos Espurios:</strong> Ten en cuenta que los sensores detectan cuerpos transitorios (como cometas o meteoroides metálicos errantes) cuyas órbitas no son nativas ni circulares. Estos cuerpos desestabilizan el arpa si se insertan en los nodos.</li>
+          </ul>
+          <p class="mt-3 text-[10px] text-cronos-neon border-t border-slate-900 pt-2">💡 Consejo de Laboratorio: Observa atentamente el indicador de "Masa" de cada tarjeta y asócialo con la resistencia requerida para cada distancia orbital.</p>
+        `;
+      } else {
+        helpContent.innerHTML = `
+          <p class="font-bold text-cronos-gold uppercase mb-1">🔊 Fenómenos Ondulatorios (Fase 2)</p>
+          <p>Has activado la modulación cimática. Sigue estas directrices de calibración física:</p>
+          <ul class="list-disc list-inside space-y-1.5 mt-2 text-slate-400">
+            <li>La línea <strong>discontinua oscura</strong> representa la geometría vibratoria ideal del Hielo Primordial.</li>
+            <li>Ajusta la <strong class="text-white">Frecuencia</strong> para coordinar los nodos y crestas de la onda en el eje horizontal.</li>
+            <li>Modifica la <strong class="text-white">Amplitud</strong> para expandir la fuerza en el eje vertical hasta que ambas curvas coincidan en el espacio tridimensional.</li>
+          </ul>
+          <p class="mt-2 text-emerald-400">✓ El sistema aceptará la sintonía al superar el 95% de coincidencia espectral.</p>
+        `;
+      }
+      modalHelp.classList.remove('hidden');
+    });
+
+    const closeHelp = () => modalHelp.classList.add('hidden');
+    document.getElementById('close-help-btn').addEventListener('click', closeHelp);
+    document.getElementById('close-help-btn-bottom').addEventListener('click', closeHelp);
+
+    finalClaimBtn.addEventListener('click', () => {
+      modalReward.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
